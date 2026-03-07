@@ -1,0 +1,142 @@
+{
+	// 字体大小
+	"editor.fontSize": 18,
+	// 终端字体大小
+	"terminal.integrated.fontSize": 16,
+	// code snippet
+	"editor.suggestSelection": "recentlyUsedByPrefix",
+	"editor.autoClosingBrackets": "always",
+	// snippets代码优先显示补全
+	"editor.snippetSuggestions": "top",
+	//在读取和写入文件时使用的默认字符集编码。可以按语言对此项进行配置
+	"files.encoding": "utf8",
+	//控制是否检测 "$LANG" 环境变量并将其设置为符合 UTF-8 的选项，因为 VS Code 的终端仅支持来自 shell 的 UTF-8 编码数据
+	"terminal.integrated.detectLocale": "off",
+	// tab变为空格
+	"editor.insertSpaces": true,
+	// 缩进尺寸
+	"editor.tabSize": 2,
+	// 设置光标类型
+	"editor.cursorStyle": "block",
+	"editor.cursorBlinking": "blink",
+	"workbench.colorCustomizations": {
+		"editorCursor.foreground": "#ffffff"
+	},
+	// vim按键冲突配置
+	"vim.handleKeys": {
+		"<C-d>": true,
+		"<C-s>": true,
+		"<C-z>": false,
+		"<C-a>": false,
+		"<C-j>": false,
+		"<C-x>": false,
+		"<C-w>": false
+	},
+	// 字符长度折行
+	// "editor.wordWrap": "wordWrapColumn",
+	// "editor.wordWrapColumn": 80,
+	// 函数参数提示
+	"editor.inlayHints.enabled": "off",
+	// 代码提示时间
+	"editor.hover.delay": 300,
+	// cmake路径设置
+	"cmake.cmakePath": "cmake",
+	// clang-format配置设置
+	"clang-format.style": "file",
+	"clang-format.assumeFilename": "./.clang-format", //使用工作区独立配置文件
+	"clang-format.executable": "clang-format",
+	"clang-format.fallbackStyle": "Google",
+	// clangd路径
+	"clangd.path": "clangd",
+	// 配置clangd数组
+	"clangd.arguments": [
+		"--background-index",
+		"--compile-commands-dir=${workspaceFolder}/build",
+		"--query-driver=/usr/bin/g++",
+		"--query-driver=/usr/bin/gcc",
+		"--header-insertion=never",
+		"--clang-tidy",
+		"--all-scopes-completion",
+		"--completion-style=detailed",
+		"--log=verbose",
+		"--pretty",
+		"--pch-storage=memory",
+		"--header-insertion-decorators=false"
+	],
+	"makefile.makefilePath": "${workspaceFolder}/build",
+	// 禁止C/C++插件提示
+	"C_Cpp.intelliSenseEngine": "disabled",
+	// 文件关联
+	// "files.associations": {
+	// 	"*.h": "cpp",
+	// 	"*.hpp": "cpp"
+	// },
+	// Doxygen documentation generator set
+	"doxdocgen.c.triggerSequence": "/", // 触发自动注释的生成
+	"doxdocgen.c.commentPrefix": " * ", // 注释行的前缀
+	"doxdocgen.c.firstLine": "/**", // 注释行的首行
+	"doxdocgen.c.lastLine": "*/", // 注释行的尾行
+	// Smart text snippet for factory methods/functions.
+	"doxdocgen.c.factoryMethodText": "Create a {name} object",
+	// Smart text snippet for getters.
+	"doxdocgen.c.getterText": "Get the {name} object",
+	// Smart text snippet for setters.
+	"doxdocgen.c.setterText": "Set the {name} object",
+	// Smart text snippet for constructors.
+	"doxdocgen.cpp.ctorText": "Construct a new {name} object",
+	// Smart text snippet for destructors.
+	"doxdocgen.cpp.dtorText": "Destroy the {name} object",
+	// The template of the template parameter Doxygen line(s) that are generated. If empty it won't get generated at all.
+	"doxdocgen.cpp.tparamTemplate": "@tparam {param} ",
+	// 文件注释：版权信息模板
+	"doxdocgen.file.copyrightTag": [
+		"@copyright Copyright (c) {year}"
+	],
+	// 文件注释：自定义模块，这里我添加一个修改日志
+	// "doxdocgen.file.customTag": [
+	//     "@par 修改日志:",
+	//     "<table>",
+	//     "<tr><th>Date       <th>Version <th>Author  <th>Description",
+	//     "<tr><td>{date} <td>1.0.1     <td>zhoulq     <td>内容",
+	//     "</table>",
+	// ],
+	// 文件注释的组成及其排序
+	"doxdocgen.file.fileOrder": [
+		"file", // @file
+		"brief", // @brief 简介
+		"author", // 作者
+		"version", // 版本
+		"date", // 日期
+		"empty", // 空行
+		"copyright", // 版权
+		"empty",
+		"custom" // 自定义
+	],
+	// 下面时设置上面标签tag的具体信息
+	"doxdocgen.file.fileTemplate": "@file {name}",
+	"doxdocgen.file.versionTag": "",
+	"doxdocgen.generic.authorEmail": "",
+	"doxdocgen.generic.authorName": "",
+	"doxdocgen.generic.authorTag": "@author {author} ({email})",
+	// 日期格式与模板
+	"doxdocgen.generic.dateFormat": "YYYY-MM-DD",
+	"doxdocgen.generic.dateTemplate": "@date {date}",
+	// 根据自动生成的注释模板（目前主要体现在函数注释上）
+	"doxdocgen.generic.order": [
+		"brief",
+		"tparam",
+		"param",
+		"return",
+		"author",
+		"date"
+	],
+	"doxdocgen.generic.paramTemplate": "@param{indent:8}{param}{indent:8}",
+	"doxdocgen.generic.returnTemplate": "@return {type} ",
+	"doxdocgen.generic.splitCasingSmartText": true,
+	"doxdocgen.generic.includeTypeAtReturn": true, // return 中包含类型信息
+	"doxdocgen.generic.boolReturnsTrueFalse": false, // bool 返回值拆分成 true 和 false 两种情况
+	"doxdocgen.generic.linesToGet": 20, // 回车后最多向下多少行去找函数声明
+	"doxdocgen.generic.useGitUserName": false, // {author} 是都根据 git config --get user.name 替换
+	"doxdocgen.generic.useGitUserEmail": false,
+	//declarations or definitions anymore.
+}

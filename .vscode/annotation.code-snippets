@@ -1,0 +1,13 @@
+{
+	// "main function": {
+	// 	"prefix": "/main", //这里是快捷键方法
+	// 	"body": [
+	// 	  "",
+	// 	  "int",
+	// 	  "main(int argc, char* argv[]) {",
+	// 	  "  return 0;",
+	// 	  "}",
+	// 	],
+	// 	"description": "Print to cpp hedaer"
+	// },
+}
