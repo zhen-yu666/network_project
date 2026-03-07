@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(项目名称 VERSION 1.0.0 LANGUAGES CXX)
+project(network_project VERSION 1.0.0 LANGUAGES CXX)
 
 # 生成供给clangd使用的文件
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

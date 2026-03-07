@@ -1,2 +1,2 @@
-add_subdirectory(module1)
+add_subdirectory(utility)
 # add_subdirectory(module2)
