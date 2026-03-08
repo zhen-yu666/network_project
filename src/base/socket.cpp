@@ -1,14 +1,16 @@
 #include "base/socket.h"
 
+#include <netinet/tcp.h>
 #include <unistd.h>
 
 #ifdef SOCKET_DEBUG
 
 #include <cstdio>
 
-#define PRINTF()                                                             \
-  printf("%s:%s:%d listen socket create error:%d\n", __FILE__, __FUNCTION__, \
-         __LINE__, errno)
+#define PRINTF(fmt, ...) \
+  printf("%s:%s:%d" fmt "\n", __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
+
+#define PERROR(fmt) perror(fmt)
 
 #endif  // SOCKET_DEBUG
 
@@ -17,43 +19,18 @@ createNonbloking() {
   // 创建服务端用于监听的listenfd。
   int listen_fd = socket(SOCKET_DOMAIN, SOCKET_TYPE, SOCKET_PROTOCOL);
   if(listen_fd < 0) {
+
 #ifdef SOCKET_DEBUG
-    PRINTF();
+    PRINTF("msg: %d", errno);
 #endif  // SOCKET_DEBUG
+
     exit(-1);
   }
   return listen_fd;
 }
 
-Socket::Socket(int fd) : fd_(fd), ip_(""), port_(0) {}
-
 Socket::~Socket() {
   close(fd_);
-}
-
-const int
-Socket::fd() const {
-  return fd_;
-}
-
-const std::string&
-Socket::ip() const {
-  return ip_;
-}
-
-uint16_t
-Socket::port() const {
-  return port_;
-}
-
-void
-Socket::setIp(const std::string& ip) {
-  ip_ = ip;
-}
-
-void
-Socket::setPort(uint16_t port) {
-  port_ = port;
 }
 
 void
@@ -62,14 +39,61 @@ Socket::setReuseaddr(bool on) {
   setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 }
 
-void Socket::setReuseport(bool on) {}
+void
+Socket::setReuseport(bool on) {
+  int opt = on ? 1 : 0;
+  setsockopt(fd_, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt));
+}
 
-void Socket::setTcpNodelay(bool on) {}
+void
+Socket::setTcpNodelay(bool on) {
+  int opt = on ? 1 : 0;
+  setsockopt(fd_, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt));
+}
 
-void Socket::setKeepalive(bool on) {}
+void
+Socket::setKeepalive(bool on) {
+  int opt = on ? 1 : 0;
+  setsockopt(fd_, SOL_SOCKET, SO_KEEPALIVE, &opt, sizeof(opt));
+}
 
-void Socket::bind(const InetAddress& serv_addr) {}
+void
+Socket::bind(const InetAddress& serv_addr) {
+  if(::bind(fd_, serv_addr.addr(), sizeof(sockaddr)) < 0) {
 
-void Socket::listen(int n) {}
+#ifdef SOCKET_DEBUG
+    PERROR("bind() failed");
+#endif  // SOCKET_DEBUG
 
-int Socket::accept(InetAddress& client_addr) {}
+    close(fd_);
+    exit(-1);
+  }
+  setIp(serv_addr.ip());
+  setPort(serv_addr.port());
+}
+
+void
+Socket::listen(int n) {
+  if(::listen(fd_, n) != 0) {
+
+#ifdef SOCKET_DEBUG
+    PERROR("listen() failed");
+#endif  // SOCKET_DEBUG
+
+    close(fd_);
+    exit(-1);
+  }
+}
+
+int
+Socket::accept(InetAddress& client_addr) {
+  sockaddr_in peer_addr;
+  socklen_t len = sizeof(peer_addr);
+  int client_fd =
+    accept4(fd_, reinterpret_cast<sockaddr*>(&peer_addr), &len, SOCK_NONBLOCK);
+
+  // 客户端的地址和协议。
+  client_addr.setaddr(peer_addr);
+
+  return client_fd;
+}

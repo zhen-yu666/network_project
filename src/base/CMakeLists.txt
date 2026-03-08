@@ -1,5 +1,6 @@
 set(SOURCES
   inet_address.cpp
+  socket.cpp
 )
 
 add_library(base

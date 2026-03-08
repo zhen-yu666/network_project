@@ -19,7 +19,7 @@
 #include <string>
 
 #define SOCKET_DOMAIN AF_INET
-#define SOCKET_TYPE (SOCK_STREAM|SOCK_NONBLOCK)
+#define SOCKET_TYPE (SOCK_STREAM | SOCK_NONBLOCK)
 #define SOCKET_PROTOCOL IPPROTO_TCP
 
 // 创建一个非阻塞的socket。
@@ -36,25 +36,25 @@ private:
 
 public:
   // 构造函数，传入一个已准备好的fd。
-  Socket(int fd);
+  Socket(int fd) : fd_(fd), ip_(""), port_(0) {}
 
   // 在析构函数中，将关闭fd_。
   ~Socket();
 
   // 返回fd_成员。
-  const int fd() const;
+  const int fd() const { return fd_; }
 
   // 返回ip_成员。
-  const std::string& ip() const;
+  const std::string& ip() const { return ip_; }
 
   // 返回port_成员。
-  uint16_t port() const;
+  uint16_t port() const { return port_; }
 
   // 设置ip_成员。
-  void setIp(const std::string& ip);
+  void setIp(const std::string& ip) { ip_ = std::move(ip); }
 
   // 设置port_成员。
-  void setPort(uint16_t port);
+  void setPort(uint16_t port) { port_ = port; }
 
   // 设置SO_REUSEADDR选项，true-打开，false-关闭。
   void setReuseaddr(bool on);

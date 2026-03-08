@@ -1,5 +1,5 @@
 add_executable(test_base
-  test_inet_address.cpp
+  test_socket.cpp
 )
 
 target_link_libraries(test_base
