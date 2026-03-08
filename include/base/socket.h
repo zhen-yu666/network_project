@@ -13,10 +13,14 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
-#include "utility/inet_address.h"
+#include "base/inet_address.h"
 
 #include <cstdint>
 #include <string>
+
+#define SOCKET_DOMAIN AF_INET
+#define SOCKET_TYPE (SOCK_STREAM|SOCK_NONBLOCK)
+#define SOCKET_PROTOCOL IPPROTO_TCP
 
 // 创建一个非阻塞的socket。
 int createNonbloking();
@@ -38,7 +42,7 @@ public:
   ~Socket();
 
   // 返回fd_成员。
-  int fd() const;
+  const int fd() const;
 
   // 返回ip_成员。
   const std::string& ip() const;

@@ -1,8 +1,8 @@
-option(BUILD_TEST_UTILITY "Build test_utility" ON)
+option(BUILD_TEST_BASE "Build test_base" ON)
 option(BUILD_TEST_CLIENT "Build test_client" ON)
 
-if(BUILD_TEST_UTILITY)
-  add_subdirectory(test_utility)
+if(BUILD_TEST_BASE)
+  add_subdirectory(test_base)
 endif()
 
 if(BUILD_TEST_CLIENT)
