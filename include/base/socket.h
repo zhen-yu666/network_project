@@ -76,6 +76,9 @@ public:
 
   // 服务端的socket将调用此函数。
   int accept(InetAddress& client_addr);
+
+  // 服务端的socket将调用此函数。
+  int accept4(InetAddress& client_addr, int flags);
 };
 
 #endif  // SOCKET_H

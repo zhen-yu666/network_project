@@ -89,8 +89,20 @@ int
 Socket::accept(InetAddress& client_addr) {
   sockaddr_in peer_addr;
   socklen_t len = sizeof(peer_addr);
+  int client_fd = ::accept(fd_, reinterpret_cast<sockaddr*>(&peer_addr), &len);
+
+  // 客户端的地址和协议。
+  client_addr.setaddr(peer_addr);
+
+  return client_fd;
+}
+
+int
+Socket::accept4(InetAddress& client_addr, int flags) {
+  sockaddr_in peer_addr;
+  socklen_t len = sizeof(peer_addr);
   int client_fd =
-    accept4(fd_, reinterpret_cast<sockaddr*>(&peer_addr), &len, SOCK_NONBLOCK);
+    ::accept4(fd_, reinterpret_cast<sockaddr*>(&peer_addr), &len, flags);
 
   // 客户端的地址和协议。
   client_addr.setaddr(peer_addr);
