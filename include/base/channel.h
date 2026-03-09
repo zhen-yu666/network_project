@@ -9,9 +9,12 @@
 
 class Epoll;
 class Socket;
+class EventLoop;
 
 class Channel {
 private:
+  // Channel对应的事件循环，一个EventLoop对应多个Channel
+  EventLoop* loop_ = nullptr;
   // Channel拥有的fd，Channel和fd是一对一的关系。
   int fd_ = -1;
   // fd_需要监视的事件。listenfd和clientfd需要监视EPOLLIN，clientfd还可能需要监视EPOLLOUT。
@@ -20,13 +23,11 @@ private:
   uint32_t revents_ = 0;
   // 当前套接字是否在epoll红黑树上。
   bool inEpoll_ = false;
-  // Channel对应的红黑树，Channel与Epoll是多对一的关系，一个Channel只对应一个Epoll。
-  Epoll* ep_ = nullptr;
   // 对应套接字有事件，执行回调。
   std::function<void()> callback_;
 
 public:
-  Channel(int fd, Epoll* ep) : fd_(fd), ep_(ep) {}
+  Channel(EventLoop* loop, int fd) : loop_(loop), fd_(fd) {}
 
   ~Channel() = default;
 

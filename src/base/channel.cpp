@@ -2,6 +2,7 @@
 #include "base/epoll.h"
 #include "base/inet_address.h"
 #include "base/socket.h"
+#include "net/event_loop.h"
 
 #include <unistd.h>
 #include <cstring>
@@ -18,7 +19,7 @@
 void
 Channel::enableReading() {
   events_ |= EPOLLIN;
-  ep_->updateChannel(this);
+  loop_->updateChannel(this);
 }
 
 void
@@ -66,9 +67,9 @@ Channel::newConnection(Socket* serv_sock) {
          clientaddr.ip(), clientaddr.port());
 #endif
 
-  // 这里new出来的对象没有释放，这个问题以后再解决。
-  // 创建一个连接的fd
-  Channel* client_channel = new Channel(clientsock->fd(), ep_);
+  // 为新客户端连接准备读事件，并添加到epoll中。
+  // 还有，这里new出来的对象没有释放，这个问题以后再解决。
+  Channel* client_channel = new Channel(loop_, clientsock->fd());
   client_channel->setCallback(std::bind(&Channel::onMessage, client_channel));
   // 客户端连上来的fd采用边缘触发。
   client_channel->useET();
