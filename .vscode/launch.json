@@ -9,8 +9,11 @@
       "type": "cppdbg",
       "request": "launch",
       // 调试文件的路径
-      "program": "${workspaceFolder}/src/2026/02/19/main",
-      "args": [],
+      "program": "${workspaceFolder}/build/bin/test_base",
+      "args": [
+        "10.6.0.14",
+        "8080"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       // 有时候 "cwd"为: "${fileDirname}"或"${workspaceFolder}"

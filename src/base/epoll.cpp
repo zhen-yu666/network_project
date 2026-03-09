@@ -1,3 +1,4 @@
+#include "base/channel.h"
 #include "base/epoll.h"
 
 #include <unistd.h>
@@ -8,6 +9,8 @@
 // #define EPOLL_DEBUG 1
 #ifdef EPOLL_DEBUG
 
+#pragma message("EPOLL_DEBUG is defined")
+
 #include <cstdio>
 
 #define PRINTF(fmt, ...) \
@@ -15,7 +18,7 @@
 
 #define PERROR(fmt) perror(fmt)
 
-#endif  // EPOLL_DEBUG
+#endif
 
 Epoll::Epoll() {
   if((epoll_fd_ = epoll_create(1)) == -1) {
@@ -32,43 +35,52 @@ Epoll::~Epoll() {
   close(epoll_fd_);
 }
 
-// 把fd和它需要监视的事件添加到红黑树上。
 void
-Epoll::addFd(int fd, uint32_t op) {
-  // 声明事件的数据结构。
+Epoll::updateChannel(Channel* ch) {
   epoll_event ev;
-  // 指定事件的自定义数据，会随着epoll_wait()返回的事件一并返回。
-  ev.data.fd = fd;
-  // 让epoll监视listenfd的读事件，采用水平触发。
-  ev.events = op;
+  ev.data.ptr = ch;
+  ev.events = ch->getEvents();
 
-  // 把需要监视的listenfd和它的事件加入epollfd中。
-  if(epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, fd, &ev)) {
+  if(ch->getInEpoll()) {
+    // 当前socket在epoll的红黑树上。
+    if(epoll_ctl(epoll_fd_, EPOLL_CTL_MOD, ch->getFd(), &ev) == -1) {
 
 #ifdef EPOLL_DEBUG
-    PRINTF("epoll_ctl() failed(%d).", errno);
+      PERROR("epoll_ctl() failed.");
 #endif
 
-    exit(-1);
-  }
+      exit(-1);
+    }
+  } else {
+    // 当前socket不在epoll的红黑树上。
+    // 将socket挂载树上，并在对应socket注册回调函数
+    if(epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, ch->getFd(), &ev) == -1) {
 
-  epoll_event evs[10];  // 存放epoll_wait()返回事件的数组。
+#ifdef EPOLL_DEBUG
+      PERROR("epoll_ctl() failed.");
+#endif
+
+      exit(-1);
+    }
+    // 设置在树上的标记，不用向内核询问。
+    ch->setInEpoll();
+  }
 }
 
-std::vector<epoll_event>
+std::vector<Channel*>
 Epoll::loop(int timeout) {
-  // 存放epoll_wait()返回的事件。
-  std::vector<epoll_event> evs;
+  // 每一个对应的事件所带信息的集合。
+  std::vector<Channel*> channels;
 
-  memset(event_, 0, sizeof(event_));
-  // 等待监视的fd有事件发生。
-  int infds = epoll_wait(epoll_fd_, event_, max_events, timeout);
+  memset(events_, 0, sizeof(events_));
+  // 将rdlist的内容拷贝到events_，然后加入到对应的channel中。
+  int infds = epoll_wait(epoll_fd_, events_, max_events, timeout);
 
   // 返回失败。
   if(infds < 0) {
 
 #ifdef EPOLL_DEBUG
-    PRINTF("epoll_wait() failed.");
+    PERROR("epoll_wait() failed");
 #endif
 
     exit(-1);
@@ -78,20 +90,21 @@ Epoll::loop(int timeout) {
   if(infds == 0) {
 
 #ifdef EPOLL_DEBUG
-    PRINTF("epoll_wait() timeout.");
+    PERROR("epoll_wait() timeout");
 #endif
 
-    return evs;
+    return channels;
   }
 
   // 如果infds>0，表示有事件发生的fd的数量。
-  // 遍历epoll返回的数组evs。
-  for(int i = 0; i < infds; i++) {
-    evs.emplace_back(std::move(event_[i]));
+  // 遍历epoll返回的数组events_。
+  for(int i = 0; i < infds; ++i) {
+    // 取出已发生事件的信息合集
+    Channel* ch = reinterpret_cast<Channel*>(events_[i].data.ptr);
+    // 设置将对应的信息加入集合
+    ch->setRevents(events_[i].events);
+    channels.emplace_back(std::move(ch));
   }
 
-  return evs;
+  return channels;
 }
-
-// void updateChannel(Channel* ch);
-// void removeChannel(Channel* ch);

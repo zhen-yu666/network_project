@@ -29,10 +29,10 @@ class Socket {
 private:
   // Socket持有的fd
   const int fd_;
-  // 如果是listenfd，存放服务端监听的ip，如果是客户端连接的fd，存放对端的ip。
-  std::string ip_;
   // 如果是listenfd，存放服务端监听的port，如果是客户端连接的fd，存放外部端口。
   uint16_t port_;
+  // 如果是listenfd，存放服务端监听的ip，如果是客户端连接的fd，存放对端的ip。
+  std::string ip_;
 
 public:
   // 构造函数，传入一个已准备好的fd。

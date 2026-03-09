@@ -1,10 +1,13 @@
+# tests/test_base/CMakeLists.txt
+
 add_executable(test_base
-  test_epoll.cpp
+  test_channel.cpp
 )
 
 target_link_libraries(test_base
   PRIVATE
     base
+    # project_defines
 )
 
 target_include_directories(test_base

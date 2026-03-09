@@ -1,3 +1,5 @@
+# /
+
 cmake_minimum_required(VERSION 3.15)
 project(network_project VERSION 1.0.0 LANGUAGES CXX)
 
@@ -10,8 +12,9 @@ enable_testing()
 # 包含自定义模块路径
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-# 设置全局编译选项
-include(project_settings)
+# 设置附加选项
+include(cmake/project_settings.cmake)
+# include(cmake/definitions.cmake)
 
 # 设置输出目录（便于调试）
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
