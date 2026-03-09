@@ -1,7 +1,7 @@
 # tests/test_base/CMakeLists.txt
 
 add_executable(test_base
-  test_channel2.cpp
+  test_channel3.cpp
 )
 
 target_link_libraries(test_base

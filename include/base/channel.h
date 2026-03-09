@@ -5,16 +5,10 @@
 
 #include <sys/epoll.h>
 #include <cstdint>
+#include <functional>
 
 class Epoll;
 class Socket;
-
-enum class ChannelType : uint8_t {
-  // 监听套接字
-  ListenFd,
-  // 已连接套接字
-  ConnFd
-};
 
 class Channel {
 private:
@@ -26,14 +20,13 @@ private:
   uint32_t revents_ = 0;
   // 当前套接字是否在epoll红黑树上。
   bool inEpoll_ = false;
-  // 套接字属于什么类型。
-  ChannelType type_ = ChannelType::ListenFd;
   // Channel对应的红黑树，Channel与Epoll是多对一的关系，一个Channel只对应一个Epoll。
   Epoll* ep_ = nullptr;
+  // 对应套接字有事件，执行回调。
+  std::function<void()> callback_;
 
 public:
-  Channel(int fd, ChannelType type, Epoll* ep)
-      : fd_(fd), type_(type), ep_(ep) {}
+  Channel(int fd, Epoll* ep) : fd_(fd), ep_(ep) {}
 
   ~Channel() = default;
 
@@ -62,7 +55,19 @@ public:
   uint32_t getEvents() { return events_; }
 
   // 事件处理函数。
-  void handLevent(Socket* serv_sock);
+  void handLevent();
+
+  // 处理新客户端连接请求。
+  void newConnection(Socket* serv_sock);
+
+  // 处理对端发送到服务端的信息。
+  void onMessage();
+
+  // 设置对应套接字有事件时，执行的回调函数
+  template<typename Fn>
+  void setCallback(Fn&& cb) {
+    callback_ = std::forward<Fn>(cb);
+  }
 };
 
 #endif
