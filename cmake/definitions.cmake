@@ -7,7 +7,8 @@ add_library(project_defines INTERFACE)
 option(ENABLE_TEST_MACROS "Enable test-specific macros" ON)
 if(ENABLE_TEST_MACROS)
     target_compile_definitions(project_defines INTERFACE
-      EPOLL_DEBUG
+      # EPOLL_DEBUG
+      # CHANNEL_DEBUG
       CHANNEL_DEBUG
     )
 endif()

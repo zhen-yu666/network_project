@@ -43,6 +43,7 @@ main(int argc, char* argv[]) {
     // 如果infds>0，表示有事件发生的fd的数量。
     // 遍历epoll返回的数组evs。
     for(auto ch : channels) {
+/* 
       if(ch->getRevents() & EPOLLRDHUP) {
         // 对方已关闭，有些系统检测不到，可以使用EPOLLIN，recv()返回0。
         printf("client(eventfd=%d) disconnected.\n", ch->getFd());
@@ -108,7 +109,9 @@ main(int argc, char* argv[]) {
         printf("client(eventfd=%d) error.\n", ch->getFd());
         close(ch->getFd());  // 关闭客户端的fd。
         ////////////////////////////////////////////////////////////////////////
-      }
+      } */
+
+      ch->handLevent(&listen_sock);
     }
   }
 
