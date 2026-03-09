@@ -18,7 +18,7 @@ Acceptor::init(const std::string& ip, const uint16_t port) {
 
   listen_channel_ = new Channel(loop_, listen_sock_->fd());
   // 新连接处理
-  listen_channel_->setCallback(std::bind(&Acceptor::newConnection, this));
+  listen_channel_->setReadCallback(std::bind(&Acceptor::newConnection, this));
   // 将监听的socket挂在树上
   listen_channel_->enableReading();
 }

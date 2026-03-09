@@ -23,8 +23,12 @@ private:
   uint32_t revents_ = 0;
   // 当前套接字是否在epoll红黑树上。
   bool inEpoll_ = false;
-  // 对应套接字有事件，执行回调。
-  std::function<void()> callback_;
+  // fd_读事件的回调函数。
+  std::function<void()> readCallback_;
+  // 关闭fd_的回调函数。
+  std::function<void()> closeCallback_;
+  // fd_发生了错误的回调函数。
+  std::function<void()> errorCallback_;
 
 public:
   Channel(EventLoop* loop, int fd) : loop_(loop), fd_(fd) {}
@@ -61,10 +65,22 @@ public:
   // 处理对端发送到服务端的信息。
   void onMessage();
 
-  // 设置对应套接字有事件时，执行的回调函数
-  template<typename Fn>
-  void setCallback(Fn&& cb) {
-    callback_ = std::forward<Fn>(cb);
+  // 设置fd_读事件的回调函数。
+  template<typename Callback>
+  void setReadCallback(Callback&& cb) {
+    readCallback_ = std::forward<Callback>(cb);
+  }
+
+  // 设置关闭fd_的回调函数。
+  template<typename Callback>
+  void setCloseCallback(Callback&& cb) {
+    closeCallback_ = std::forward<Callback>(cb);
+  }
+
+  // 设置fd_发生了错误的回调函数。
+  template<typename Callback>
+  void setErrorCallback(Callback&& cb) {
+    errorCallback_ = std::forward<Callback>(cb);
   }
 };
 

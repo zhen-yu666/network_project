@@ -5,8 +5,8 @@
 
 #include <sys/socket.h>
 #include <unistd.h>
-#include <cstring>
 #include <cerrno>
+#include <cstring>
 
 // #define CHANNEL_DEBUG 1
 #ifdef CHANNEL_DEBUG
@@ -27,30 +27,16 @@ void
 Channel::handLevent() {
   if(revents_ & EPOLLRDHUP) {
     // 对方已关闭，有些系统检测不到，可以使用EPOLLIN，recv()返回0。
-
-#ifdef CHANNEL_DEBUG
-    PRINTF("client(eventfd=%d) disconnected.\n", fd_);
-#endif
-
-    close(fd_);  // 关闭客户端的fd。
+    closeCallback_();
   } else if(revents_ & (EPOLLIN | EPOLLPRI)) {
     // 如果有新连接，设置回调函数为newConnection
     // 如果有数据到达，设置回调函数为onMessage
-    callback_();
+    readCallback_();
   } else if(revents_ & EPOLLOUT) {
     // 有数据需要写，暂时没有代码，以后再说。
-    ////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////
   } else {
     // 其它事件，都视为错误。
-    ////////////////////////////////////////////////////////////////////////
-
-#ifdef CHANNEL_DEBUG
-    PRINTF("client(eventfd=%d) error.\n", fd_);
-#endif
-
-    close(fd_);  // 关闭客户端的fd。
-    ////////////////////////////////////////////////////////////////////////
+    errorCallback_();
   }
 }
 
@@ -78,12 +64,7 @@ Channel::onMessage() {
       break;
     } else if(nread == 0) {
       // 客户端连接已断开。
-
-#ifdef CHANNEL_DEBUG
-      PRINTF("client(eventfd=%d) disconnected.\n", fd_);
-#endif
-
-      close(fd_);  // 关闭客户端的fd。
+      closeCallback_();
       break;
     }
   }
