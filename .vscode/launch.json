@@ -9,7 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       // 调试文件的路径
-      "program": "${workspaceFolder}/build/bin/test_base",
+      "program": "${workspaceFolder}/build/bin/test_server",
       "args": [
         "10.6.0.14",
         "8080"
