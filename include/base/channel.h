@@ -58,9 +58,6 @@ public:
   // 事件处理函数。
   void handLevent();
 
-  // 处理新客户端连接请求。
-  void newConnection(Socket* serv_sock);
-
   // 处理对端发送到服务端的信息。
   void onMessage();
 

@@ -1,11 +1,12 @@
 #include "base/channel.h"
+
 #include "base/epoll.h"
-#include "base/inet_address.h"
-#include "base/socket.h"
 #include "net/event_loop.h"
 
+#include <sys/socket.h>
 #include <unistd.h>
 #include <cstring>
+#include <cerrno>
 
 // #define CHANNEL_DEBUG 1
 #ifdef CHANNEL_DEBUG
@@ -51,30 +52,6 @@ Channel::handLevent() {
     close(fd_);  // 关闭客户端的fd。
     ////////////////////////////////////////////////////////////////////////
   }
-}
-
-void
-Channel::newConnection(Socket* serv_sock) {
-  // 客户端的地址和协议。
-  InetAddress clientaddr;
-  // 注意，clientsock只能new出来，不能在栈上，否则析构函数会关闭fd。
-  // 还有，这里new出来的对象没有释放，这个问题以后再解决。
-  Socket* clientsock =
-    new Socket(serv_sock->accept4(clientaddr, SOCK_NONBLOCK));
-
-#ifdef CHANNEL_DEBUG
-  PRINTF("accept client(fd=%d,ip=%s,port=%d) ok.\n", clientsock->fd(),
-         clientaddr.ip(), clientaddr.port());
-#endif
-
-  // 为新客户端连接准备读事件，并添加到epoll中。
-  // 还有，这里new出来的对象没有释放，这个问题以后再解决。
-  Channel* client_channel = new Channel(loop_, clientsock->fd());
-  client_channel->setCallback(std::bind(&Channel::onMessage, client_channel));
-  // 客户端连上来的fd采用边缘触发。
-  client_channel->useET();
-  // 让epoll监视clientchannel的读事件。
-  client_channel->enableReading();
 }
 
 void

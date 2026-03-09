@@ -4,6 +4,7 @@ set(SOURCES
   event_loop.cpp
   tcp_server.cpp
   acceptor.cpp
+  connection.cpp
 )
 
 add_library(net
@@ -13,7 +14,7 @@ add_library(net
 
 target_link_libraries(net
   PRIVATE
-    # project_defines
+    project_defines
     base
 )
 

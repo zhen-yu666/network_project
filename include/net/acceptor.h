@@ -29,6 +29,9 @@ public:
   }
 
   ~Acceptor();
+
+  // 处理新客户端连接请求。
+  void newConnection();
 };
 
 #endif

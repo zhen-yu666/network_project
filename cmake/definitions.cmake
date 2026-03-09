@@ -10,6 +10,7 @@ if(ENABLE_TEST_MACROS)
       # EPOLL_DEBUG
       # CHANNEL_DEBUG
       CHANNEL_DEBUG
+      ACCEPTOR_DEBUG
     )
 endif()
 
