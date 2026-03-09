@@ -2,6 +2,7 @@
 
 set(SOURCES
   event_loop.cpp
+  tcp_server.cpp
 )
 
 add_library(net

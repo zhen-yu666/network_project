@@ -14,7 +14,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 # 设置附加选项
 include(cmake/project_settings.cmake)
-# include(cmake/definitions.cmake)
+include(cmake/definitions.cmake)
 
 # 设置输出目录（便于调试）
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

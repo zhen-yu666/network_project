@@ -1,4 +1,4 @@
-# tests/test_server
+# tests/test_server/
 
 add_executable(test_server
   test_event_loop.cpp
