@@ -4,13 +4,14 @@
 add_library(project_defines INTERFACE)
 
 # 可以根据条件添加宏
-option(ENABLE_TEST_MACROS "Enable test-specific macros" ON)
+option(ENABLE_TEST_MACROS "Enable test-specific macros" OFF)
 if(ENABLE_TEST_MACROS)
     target_compile_definitions(project_defines INTERFACE
       # EPOLL_DEBUG
       # CHANNEL_DEBUG
       CHANNEL_DEBUG
-      ACCEPTOR_DEBUG
+      TCP_SERVER_DEBUG
+      # ACCEPTOR_DEBUG
     )
 endif()
 

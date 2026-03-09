@@ -14,8 +14,8 @@ add_library(net
 
 target_link_libraries(net
   PRIVATE
-    project_defines
     base
+    project_defines
 )
 
 target_include_directories(net

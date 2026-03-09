@@ -4,14 +4,6 @@
 #include "base/socket.h"
 #include "net/connection.h"
 
-// #define ACCEPTOR_DEBUG 1
-#ifdef ACCEPTOR_DEBUG
-
-#include <cstdio>
-
-#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__);
-
-#endif
 
 void
 Acceptor::init(const std::string& ip, const uint16_t port) {
@@ -27,7 +19,7 @@ Acceptor::init(const std::string& ip, const uint16_t port) {
   listen_channel_ = new Channel(loop_, listen_sock_->fd());
   // 新连接处理
   listen_channel_->setCallback(std::bind(&Acceptor::newConnection, this));
-  // 让epoll监视监听套接字的事件
+  // 将监听的socket挂在树上
   listen_channel_->enableReading();
 }
 
@@ -47,12 +39,7 @@ Acceptor::newConnection() {
   Socket* clientsock =
     new Socket(listen_sock_->accept4(clientaddr, SOCK_NONBLOCK));
 
-#ifdef ACCEPTOR_DEBUG
-  PRINTF("accept client(fd=%d,ip=%s,port=%d) ok.\n", clientsock->fd(),
-         clientaddr.ip(), clientaddr.port());
-#endif
-
-  // 为新客户端连接准备读事件，并添加到epoll中。
-  // 还有，这里new出来的对象没有释放，这个问题以后再解决。
-  Connection* conn = new Connection(loop_, clientsock);
+  // 将新连接的客户端挂在树上。
+  // 回调TcpServer::newconnection()
+  new_conn_callback_(clientsock);
 }
