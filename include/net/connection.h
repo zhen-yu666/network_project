@@ -30,6 +30,8 @@ private:
   std::function<void(Connection*)> errorCallback_;
   // 处理报文的回调函数
   std::function<void(Connection*, const std::string&)> onMsgCallback_;
+  // 发送数据完成后的回调函数
+  std::function<void(Connection*)> sendCompleteCallback_;
 
 private:
   void init();
@@ -82,6 +84,12 @@ public:
   template<typename Callback>
   void setOnMsgCallback(Callback&& cb) {
     onMsgCallback_ = std::forward<Callback>(cb);
+  }
+
+  // 发送数据完成后的回调函数。
+  template<typename Callback>
+  void setSendCompleteCallback(Callback&& cb) {
+    sendCompleteCallback_ = std::forward<Callback>(cb);
   }
 };
 

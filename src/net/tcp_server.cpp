@@ -17,6 +17,8 @@ TcpServer::init(const std::string& ip, const uint16_t port) {
   acceptor_ = new Acceptor(&loop_, ip, port);
   acceptor_->setNewConnCallback(
     std::bind(&TcpServer::newConnection, this, std::placeholders::_1));
+  loop_.setEpollTimeoutCallback(
+    std::bind(&TcpServer::epollTimeout, this, std::placeholders::_1));
 }
 
 TcpServer::~TcpServer() {
@@ -42,6 +44,8 @@ TcpServer::newConnection(Socket* client_sock) {
     std::bind(&TcpServer::errorConnection, this, std::placeholders::_1));
   conn->setOnMsgCallback(std::bind(
     &TcpServer::onMessage, this, std::placeholders::_1, std::placeholders::_2));
+  conn->setSendCompleteCallback(
+    std::bind(&TcpServer::sendComplete, this, std::placeholders::_1));
 
 #ifdef TCP_SERVER_DEBUG
   PRINTF("new connection(fd=%d,ip=%s,port=%d) ok.\n", conn->fd(),
@@ -88,4 +92,16 @@ TcpServer::onMessage(Connection* conn, const std::string& msg) {
 
   // 把临时缓冲区中的数据发送出去
   conn->send(tmp_buf.data(), tmp_buf.size());
+}
+
+void
+TcpServer::sendComplete(Connection* conn) {
+  printf("send complete.\n");
+  // 业务代码
+}
+
+void
+TcpServer::epollTimeout(EventLoop* loop) {
+  printf("epoll_wait() timeout.\n");
+  // 业务代码
 }

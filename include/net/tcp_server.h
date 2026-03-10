@@ -4,8 +4,8 @@
 #define TCP_SERVER_H
 
 #include "net/acceptor.h"
-#include "net/event_loop.h"
 #include "net/connection.h"
+#include "net/event_loop.h"
 
 #include <string>
 #include <unordered_map>
@@ -40,12 +40,18 @@ public:
 
   // 关闭客户端的连接。
   void closeConnection(Connection* conn);
-  
+
   // 客户端的连接错误。
   void errorConnection(Connection* conn);
 
   // 处理对端发送到服务端的信息。
   void onMessage(Connection* conn, const std::string& msg);
+
+  // 数据发送完成后，在Connection类中回调此函数。
+  void sendComplete(Connection* conn);
+
+  // epoll_wait()超时，
+  void epollTimeout(EventLoop* loop);
 };
 
 #endif

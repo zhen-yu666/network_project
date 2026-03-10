@@ -45,16 +45,16 @@ void
 Channel::handLevent() {
   if(revents_ & EPOLLRDHUP) {
     // 对方已关闭，有些系统检测不到，可以使用EPOLLIN，recv()返回0。
-    closeCallback_();
+    close_callback_();
   } else if(revents_ & (EPOLLIN | EPOLLPRI)) {
     // 如果有新连接，设置回调函数为newConnection
     // 如果有数据到达，设置回调函数为onMessage
-    readCallback_();
+    read_callback_();
   } else if(revents_ & EPOLLOUT) {
     // 有数据需要写，暂时没有代码，以后再说。
-    writeCallback_();
+    write_callback_();
   } else {
     // 其它事件，都视为错误。
-    errorCallback_();
+    error_callback_();
   }
 }

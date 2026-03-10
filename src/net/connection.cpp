@@ -95,6 +95,8 @@ Connection::writeCallback() {
     output_buffer_.retrieve(writen);
 
   // 如果发送缓冲区中没有数据了，表示数据已发送完成，不再关注写事件。
-  if(output_buffer_.size() == 0)
+  if(output_buffer_.size() == 0) {
     client_channel_->disableWriting();
+    sendCompleteCallback_(this);
+  }
 }

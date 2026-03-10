@@ -24,13 +24,13 @@ private:
   // 当前套接字是否在epoll红黑树上。
   bool inEpoll_ = false;
   // fd_读事件的回调函数。
-  std::function<void()> readCallback_;
+  std::function<void()> read_callback_;
   // 关闭fd_的回调函数。
-  std::function<void()> closeCallback_;
+  std::function<void()> close_callback_;
   // fd_发生了错误的回调函数。
-  std::function<void()> errorCallback_;
+  std::function<void()> error_callback_;
   // fd_写事件的回调函数。
-  std::function<void()> writeCallback_;
+  std::function<void()> write_callback_;
 
 public:
   Channel(EventLoop* loop, int fd) : loop_(loop), fd_(fd) {}
@@ -76,25 +76,25 @@ public:
   // 设置fd_读事件的回调函数。
   template<typename Callback>
   void setReadCallback(Callback&& cb) {
-    readCallback_ = std::forward<Callback>(cb);
+    read_callback_ = std::forward<Callback>(cb);
   }
 
   // 设置关闭fd_的回调函数。
   template<typename Callback>
   void setCloseCallback(Callback&& cb) {
-    closeCallback_ = std::forward<Callback>(cb);
+    close_callback_ = std::forward<Callback>(cb);
   }
 
   // 设置fd_发生了错误的回调函数。
   template<typename Callback>
   void setErrorCallback(Callback&& cb) {
-    errorCallback_ = std::forward<Callback>(cb);
+    error_callback_ = std::forward<Callback>(cb);
   }
 
   // 设置写事件的回调函数。
   template<typename Callback>
   void setWriteCallback(Callback&& cb) {
-    writeCallback_ = std::forward<Callback>(cb);
+    write_callback_ = std::forward<Callback>(cb);
   }
 };
 
