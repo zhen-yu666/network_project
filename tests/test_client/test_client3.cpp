@@ -1,6 +1,6 @@
 /**
  * @file test_client2.cpp
- * @brief 演示tcp粘包与分包情况，客户端。
+ * @brief 演示用头部长度+内容，解决tcp粘包与分包问题，客户端。
  * @author  ()
  * @date 2026-03-09
  * 
@@ -52,11 +52,16 @@ main(int argc, char* argv[]) {
   for(int ii = 0; ii < 1000; ii++) {
     // 从命令行输入内容。
     memset(buf, 0, sizeof(buf));
-    //printf("please input:"); scanf("%s",buf);
     sprintf(buf, "这是第%d个超级女生。", ii);
 
-    if(send(sockfd, buf, strlen(buf), 0)
-       <= 0)  // 把命令行输入的内容发送给服务端。
+    // 得到报文长度
+    int len = strlen(buf);
+    char tmp[1024];
+    memset(tmp, 0, sizeof(tmp));
+    memcpy(tmp, &len, 4);
+    memcpy(tmp + 4, buf, len);
+
+    if(send(sockfd, tmp, len + 4, 0) <= 0)  // 把命令行输入的内容发送给服务端。
     {
       printf("write() failed.\n");
       close(sockfd);

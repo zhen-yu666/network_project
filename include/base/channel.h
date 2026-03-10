@@ -62,9 +62,6 @@ public:
   // 事件处理函数。
   void handLevent();
 
-  // 处理对端发送到服务端的信息。
-  void onMessage();
-
   // 设置fd_读事件的回调函数。
   template<typename Callback>
   void setReadCallback(Callback&& cb) {

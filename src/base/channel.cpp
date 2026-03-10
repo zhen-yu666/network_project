@@ -39,33 +39,3 @@ Channel::handLevent() {
     errorCallback_();
   }
 }
-
-void
-Channel::onMessage() {
-  char buffer[1024];
-  // 由于使用非阻塞IO，一次读取buffer大小数据，直到全部的数据读取完毕。
-  while(true) {
-    memset(buffer, 0, sizeof(buffer));
-    ssize_t nread = read(fd_, buffer, sizeof(buffer));
-    if(nread > 0) {
-      // 成功的读取到了数据。
-
-#ifdef CHANNEL_DEBUG
-      // 把接收到的报文内容原封不动的发回去。
-      PRINTF("recv(eventfd=%d):%s\n", fd_, buffer);
-#endif
-
-      send(fd_, buffer, strlen(buffer), 0);
-    } else if(nread == -1 && errno == EINTR) {
-      // 读取数据的时候被信号中断，继续读取。
-      continue;
-    } else if(nread == -1 && ((errno == EAGAIN) || (errno == EWOULDBLOCK))) {
-      // 全部的数据已读取完毕。
-      break;
-    } else if(nread == 0) {
-      // 客户端连接已断开。
-      closeCallback_();
-      break;
-    }
-  }
-}

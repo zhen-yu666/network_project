@@ -1,7 +1,7 @@
 # tests/test_server/
 
 add_executable(test_server
-  test_acceptor2.cpp
+  test_server.cpp
 )
 
 target_link_libraries(test_server

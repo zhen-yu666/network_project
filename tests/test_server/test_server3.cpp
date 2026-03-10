@@ -1,6 +1,6 @@
 /**
  * @file test_server2.cpp
- * @brief 演示tcp粘包与分包情况，服务端。
+ * @brief 演示用头部长度+内容，解决tcp粘包与分包问题，服务端。
  * @author  ()
  * @date 2026-03-09
  * 
@@ -142,13 +142,16 @@ main(int argc, char* argv[]) {
             true)  // 由于使用非阻塞IO，一次读取buffer大小数据，直到全部的数据读取完毕。
           {
             bzero(&buffer, sizeof(buffer));
-            ssize_t nread = read(evs[ii].data.fd, buffer, sizeof(buffer));
+            int len = 0;
+            // 读取4字节的报文头部
+            ssize_t nread = read(evs[ii].data.fd, &len, 4);
             if(nread > 0)  // 成功的读取到了数据。
             {
               // 把接收到的报文内容原封不动的发回去。
               //printf("recv(eventfd=%d):%s\n",evs[ii].data.fd,buffer);
               //send(evs[ii].data.fd,buffer,strlen(buffer),0);
-              printf("%s\n", buffer);
+              nread = read(evs[ii].data.fd, buffer, len);
+              printf("len=%d,%s\n", len, buffer);
             } else if(nread == -1
                       && errno
                            == EINTR)  // 读取数据的时候被信号中断，继续读取。

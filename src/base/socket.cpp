@@ -94,9 +94,6 @@ Socket::accept(InetAddress& client_addr) {
   // 客户端的地址和协议。
   client_addr.setaddr(peer_addr);
 
-  ip_ = client_addr.ip();
-  port_ = client_addr.port();
-
   return client_fd;
 }
 
@@ -109,9 +106,6 @@ Socket::accept4(InetAddress& client_addr, int flags) {
 
   // 客户端的地址和协议。
   client_addr.setaddr(peer_addr);
-
-  ip_ = client_addr.ip();
-  port_ = client_addr.port();
 
   return client_fd;
 }

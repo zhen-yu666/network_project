@@ -4,7 +4,6 @@
 #include "base/socket.h"
 #include "net/connection.h"
 
-
 void
 Acceptor::init(const std::string& ip, const uint16_t port) {
   listen_sock_ = new Socket((createNonbloking()));
@@ -38,7 +37,8 @@ Acceptor::newConnection() {
   // 还有，这里new出来的对象没有释放，这个问题以后再解决。
   Socket* clientsock =
     new Socket(listen_sock_->accept4(clientaddr, SOCK_NONBLOCK));
-
+  clientsock->setIp(clientaddr.ip());
+  clientsock->setPort(clientaddr.port());
   // 将新连接的客户端挂在树上。
   // 回调TcpServer::newconnection()
   new_conn_callback_(clientsock);

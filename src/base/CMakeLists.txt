@@ -5,6 +5,7 @@ set(SOURCES
   socket.cpp
   epoll.cpp
   channel.cpp
+  buffer.cpp
 )
 
 add_library(base
