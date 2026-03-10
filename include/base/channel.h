@@ -29,6 +29,8 @@ private:
   std::function<void()> closeCallback_;
   // fd_发生了错误的回调函数。
   std::function<void()> errorCallback_;
+  // fd_写事件的回调函数。
+  std::function<void()> writeCallback_;
 
 public:
   Channel(EventLoop* loop, int fd) : loop_(loop), fd_(fd) {}
@@ -38,8 +40,17 @@ public:
   // 采用边缘触发。
   void useET() { events_ |= EPOLLET; }
 
-  // 让epoll_wait()监视fd_的读事件。
+  // 注册读事件
   void enableReading();
+
+  // 取消读事件
+  void disableReading();
+
+  // 注册写事件
+  void enableWriting();
+
+  // 取消写事件
+  void disableWriting();
 
   // 返回fd_成员。
   int getFd() { return fd_; }
@@ -78,6 +89,12 @@ public:
   template<typename Callback>
   void setErrorCallback(Callback&& cb) {
     errorCallback_ = std::forward<Callback>(cb);
+  }
+
+  // 设置写事件的回调函数。
+  template<typename Callback>
+  void setWriteCallback(Callback&& cb) {
+    writeCallback_ = std::forward<Callback>(cb);
   }
 };
 

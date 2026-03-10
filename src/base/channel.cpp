@@ -24,6 +24,24 @@ Channel::enableReading() {
 }
 
 void
+Channel::disableReading() {
+  events_ &= ~EPOLLIN;
+  loop_->updateChannel(this);
+}
+
+void
+Channel::enableWriting() {
+  events_ |= EPOLLOUT;
+  loop_->updateChannel(this);
+}
+
+void
+Channel::disableWriting() {
+  events_ &= ~EPOLLOUT;
+  loop_->updateChannel(this);
+}
+
+void
 Channel::handLevent() {
   if(revents_ & EPOLLRDHUP) {
     // 对方已关闭，有些系统检测不到，可以使用EPOLLIN，recv()返回0。
@@ -34,6 +52,7 @@ Channel::handLevent() {
     readCallback_();
   } else if(revents_ & EPOLLOUT) {
     // 有数据需要写，暂时没有代码，以后再说。
+    writeCallback_();
   } else {
     // 其它事件，都视为错误。
     errorCallback_();

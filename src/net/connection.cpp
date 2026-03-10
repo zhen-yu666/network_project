@@ -14,6 +14,8 @@ Connection::init() {
     std::bind(&Connection::closeCallback, this));
   client_channel_->setErrorCallback(
     std::bind(&Connection::errorCallback, this));
+  client_channel_->setWriteCallback(
+    std::bind(&Connection::writeCallback, this));
   // 客户端连上来的fd采用边缘触发。
   client_channel_->useET();
   // 让epoll监视clientchannel的读事件。
@@ -74,4 +76,25 @@ Connection::onMessage() {
       break;
     }
   }
+}
+
+void
+Connection::send(const char* data, size_t size) {
+  // 把需要发送的数据保存到Connection的发送缓冲区中。
+  output_buffer_.append(data, size);
+  // 注册写事件。
+  client_channel_->enableWriting();
+}
+
+void
+Connection::writeCallback() {
+  // 尝试把outputbuffer_中的数据全部发送出去。
+  int writen = ::send(fd(), output_buffer_.data(), output_buffer_.size(), 0);
+  // 从outputbuffer_中删除已成功发送的字节数。
+  if(writen > 0)
+    output_buffer_.retrieve(writen);
+
+  // 如果发送缓冲区中没有数据了，表示数据已发送完成，不再关注写事件。
+  if(output_buffer_.size() == 0)
+    client_channel_->disableWriting();
 }

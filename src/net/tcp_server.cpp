@@ -77,16 +77,15 @@ TcpServer::errorConnection(Connection* conn) {
 
 void
 TcpServer::onMessage(Connection* conn, const std::string& msg) {
-  // ----------------- 测试发送响应 -----------------
   // 构造响应数据
   std::string reply = "reply:" + msg;
-  const uint32_t reply_len = reply.size();
-  // 构建发生缓冲区（长度头 + 内容）
-  char send_buf[4 + reply_len];
-  memcpy(send_buf, &reply_len, 4);
-  memcpy(send_buf + 4, reply.data(), reply_len);
+  // 计算回应报文的大小
+  int len = reply.size();
+  // 把报文头部填充到回应报文中
+  std::string tmp_buf((char*)&len, 4);
+  // 把报文内容填充到回应报文中
+  tmp_buf.append(reply);
 
-  if(send(conn->fd(), send_buf, reply_len + 4, 0) < 0) {
-    perror("send() failed.\n");
-  }
+  // 把临时缓冲区中的数据发送出去
+  conn->send(tmp_buf.data(), tmp_buf.size());
 }

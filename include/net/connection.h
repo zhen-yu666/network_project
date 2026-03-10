@@ -54,11 +54,17 @@ public:
   // 处理对端发送到服务端的信息。
   void onMessage();
 
+  // 发送数据
+  void send(const char* data, size_t size);
+
   // TCP连接关闭（断开）的回调函数。
   void closeCallback() { closeCallback_(this); }
 
   // TCP连接错误的回调函数。
   void errorCallback() { errorCallback_(this); }
+
+  // 处理写事件的回调函数
+  void writeCallback();
 
   // 设置关闭fd_的回调函数。
   template<typename Callback>
