@@ -1,6 +1,8 @@
+#include <netinet/in.h>
 #include "base/buffer.h"
 
 #include <cassert>
+#include <cstring>
 
 void
 Buffer::makeSpace(size_t len) {
@@ -56,21 +58,18 @@ Buffer::operator=(Buffer&& other) noexcept {
   return *this;
 }
 
-void
-Buffer::append(const char* data, size_t len) {
-  ensureWritableBytes(len);
-  std::copy(data, data + len, beginWrite());
-  hasWritten(len);
-}
-
-void
-Buffer::retrieve(size_t len) {
-  if(len < readableBytes()) {
-    reader_index_ += len;
-  } else {
-    // 如果取出的长度等于或超过可读数据长度，则全部取出
-    retrieveAll();
-  }
+uint32_t
+Buffer::peekInt32() const {
+  // 确保可读数据足够 4 字节
+  if(readableBytes() < sizeof(uint32_t))
+    return 0;
+  const char* p = peek();
+  uint32_t result = 0;
+  memcpy(&result, p, sizeof(result));
+  // 如果客户端发送时未做转换，直接返回
+  return result;
+  // 使用网络字节序返回
+  // return ntohl(result);
 }
 
 void
@@ -80,4 +79,25 @@ Buffer::ensureWritableBytes(size_t len) {
   }
 
   assert(writableBytes() >= len);
+}
+
+void
+Buffer::append(const char* data, size_t len) {
+  ensureWritableBytes(len);
+  std::copy(data, data + len, beginWrite());
+  hasWritten(len);
+}
+
+// void
+// Buffer::prepend(const char* data, size_t len) {
+// }
+
+void
+Buffer::retrieve(size_t len) {
+  if(len < readableBytes()) {
+    reader_index_ += len;
+  } else {
+    // 如果取出的长度等于或超过可读数据长度，则全部取出
+    retrieveAll();
+  }
 }

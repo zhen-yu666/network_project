@@ -1,8 +1,10 @@
-#include <unistd.h>
 #include "net/tcp_server.h"
 
 #include "base/socket.h"
 #include "net/connection.h"
+
+#include <unistd.h>
+#include <cstring>
 
 // #define TCP_SERVER_DEBUG 1
 #ifdef TCP_SERVER_DEBUG
@@ -38,6 +40,8 @@ TcpServer::newConnection(Socket* client_sock) {
     std::bind(&TcpServer::closeConnection, this, std::placeholders::_1));
   conn->setErrorCallback(
     std::bind(&TcpServer::errorConnection, this, std::placeholders::_1));
+  conn->setOnMsgCallback(std::bind(
+    &TcpServer::onMessage, this, std::placeholders::_1, std::placeholders::_2));
 
 #ifdef TCP_SERVER_DEBUG
   PRINTF("new connection(fd=%d,ip=%s,port=%d) ok.\n", conn->fd(),
@@ -69,4 +73,20 @@ TcpServer::errorConnection(Connection* conn) {
   // 调用Connection的析构，RAII
   delete conn;
   conn = nullptr;
+}
+
+void
+TcpServer::onMessage(Connection* conn, const std::string& msg) {
+  // ----------------- 测试发送响应 -----------------
+  // 构造响应数据
+  std::string reply = "reply:" + msg;
+  const uint32_t reply_len = reply.size();
+  // 构建发生缓冲区（长度头 + 内容）
+  char send_buf[4 + reply_len];
+  memcpy(send_buf, &reply_len, 4);
+  memcpy(send_buf + 4, reply.data(), reply_len);
+
+  if(send(conn->fd(), send_buf, reply_len + 4, 0) < 0) {
+    perror("send() failed.\n");
+  }
 }

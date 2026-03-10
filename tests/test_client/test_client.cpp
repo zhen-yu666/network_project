@@ -46,27 +46,32 @@ main(int argc, char* argv[]) {
   printf("connect ok.\n");
   // printf("开始时间：%d",time(0));
 
-  for(int ii = 0; ii < 200000; ii++) {
+  for(int ii = 0; ii < 100; ii++) {
     // 从命令行输入内容。
     memset(buf, 0, sizeof(buf));
-    printf("please input:");
-    scanf("%s", buf);
+    sprintf(buf, "这是第%d个超级女生。", ii);
+
+    char tmp_buf[1024];
+    memset(tmp_buf, 0, sizeof(tmp_buf));
+    // 报文大小
+    int len = strlen(buf);
+    // 加头部长度
+    memcpy(tmp_buf, &len, 4);
+    // 拼接内容
+    memcpy(tmp_buf + 4, buf, len);
 
     // 把命令行输入的内容发送给服务端。
-    if(send(sockfd, buf, strlen(buf), 0) <= 0) {
-      printf("write() failed.\n");
-      close(sockfd);
-      return -1;
-    }
+    send(sockfd, tmp_buf, len + 4, 0);
+  }
+
+  for(int i = 0; i < 100; ++i) {
+    int len = 0;
+    // 先读取长度
+    recv(sockfd, &len, 4, 0);
 
     memset(buf, 0, sizeof(buf));
-    // 接收服务端的回应。
-    if(recv(sockfd, buf, sizeof(buf), 0) <= 0) {
-      printf("read() failed.\n");
-      close(sockfd);
-      return -1;
-    }
-
+    // 再读取内容
+    recv(sockfd, buf, len, 0);
     printf("recv:%s\n", buf);
   }
 

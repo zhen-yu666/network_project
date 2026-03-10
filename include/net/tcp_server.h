@@ -43,6 +43,9 @@ public:
   
   // 客户端的连接错误。
   void errorConnection(Connection* conn);
+
+  // 处理对端发送到服务端的信息。
+  void onMessage(Connection* conn, const std::string& msg);
 };
 
 #endif

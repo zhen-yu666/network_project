@@ -3,8 +3,8 @@
 #ifndef CONNECTION_H
 #define CONNECTION_H
 
-#include "base/socket.h"
 #include "base/buffer.h"
+#include "base/socket.h"
 
 #include <functional>
 
@@ -28,6 +28,8 @@ private:
   std::function<void(Connection*)> closeCallback_;
   // 设置fd_发生了错误的回调函数。
   std::function<void(Connection*)> errorCallback_;
+  // 处理报文的回调函数
+  std::function<void(Connection*, const std::string&)> onMsgCallback_;
 
 private:
   void init();
@@ -68,6 +70,12 @@ public:
   template<typename Callback>
   void setErrorCallback(Callback&& cb) {
     errorCallback_ = std::forward<Callback>(cb);
+  }
+
+  // 设置fd_发生了错误的回调函数。
+  template<typename Callback>
+  void setOnMsgCallback(Callback&& cb) {
+    onMsgCallback_ = std::forward<Callback>(cb);
   }
 };
 
