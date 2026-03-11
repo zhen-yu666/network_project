@@ -14,7 +14,7 @@
 #include <cstdio>
 
 #define PRINTF(fmt, ...) \
-  printf("%s:%s:%d" fmt "\n", __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
+  printf("%s:%s:%d" fmt, __FILE__, __FUNCTION__, __LINE__, ##__VA_ARGS__)
 
 #define PERROR(fmt) perror(fmt)
 
@@ -64,6 +64,26 @@ Epoll::updateChannel(Channel* ch) {
     }
     // 设置在树上的标记，不用向内核询问。
     ch->setInEpoll();
+  }
+}
+
+void
+Epoll::removeChannel(Channel* ch) {
+  // 如果channel已经在树上了。
+  if(ch->getInEpoll()) {
+
+#ifdef EPOLL_DEBUG
+    PRINTF("removechannel()\n");
+#endif
+
+    if(epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, ch->getFd(), 0) == -1) {
+
+#ifdef EPOLL_DEBUG
+      PERROR("epoll_ctl() failed.");
+#endif
+
+      exit(-1);
+    }
   }
 }
 

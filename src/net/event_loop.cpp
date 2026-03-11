@@ -22,3 +22,8 @@ void
 EventLoop::updateChannel(Channel* ch) {
   ep_->updateChannel(ch);
 }
+
+void
+EventLoop::removeChannel(Channel* ch) {
+  ep_->removeChannel(ch);
+}

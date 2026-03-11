@@ -32,25 +32,25 @@ public:
   void Start();
 
   // 处理新客户端连接请求
-  void handleNewConnection(Connection* conn);
+  void handleNewConnection(SptrConnection conn);
 
   // 关闭客户端的连接
-  void handleClose(Connection* conn);
+  void handleClose(SptrConnection conn);
 
   // 客户端的连接错误
-  void handleError(Connection* conn);
+  void handleError(SptrConnection conn);
 
   // 处理客户端的请求报文
-  void handleMessage(Connection* conn, const std::string& message);
+  void handleMessage(SptrConnection conn, const std::string& message);
 
   // 数据发送完成后
-  void handleSendComplete(Connection* conn);
+  void handleSendComplete(SptrConnection conn);
 
   // epoll_wait()超时
   void handleTimeout(EventLoop* loop);
 
   // 处理客户端的请求报文，用于添加给线程池。
-  void onMessage(Connection* conn, const std::string& message);
+  void onMessage(SptrConnection conn, const std::string& message);
 };
 
 #endif

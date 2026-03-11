@@ -30,9 +30,11 @@ public:
   // 运行事件循环。
   void run();
 
-  // 把channel添加/更新到红黑树上，channel中有fd，也有需要监视的事件。
-  // 一个ep_对应多个Channel，等价于一个事件循环对应多个Channel。
+  // 把channel添加/更新到红黑树上
   void updateChannel(Channel* ch);
+
+  // 从红黑树上删除channel。
+  void removeChannel(Channel* ch);
 
   // 设置epoll_wait()超时的回调函数。
   template<typename Callback>

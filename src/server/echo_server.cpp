@@ -32,7 +32,7 @@ EchoServer::Start() {
 }
 
 void
-EchoServer::handleNewConnection(Connection* conn) {
+EchoServer::handleNewConnection(SptrConnection conn) {
   std::cout << "New Connection Come in." << std::endl;
 
   printf("EchoServer::HandleNewConnection() thread is %ld.\n",
@@ -42,21 +42,21 @@ EchoServer::handleNewConnection(Connection* conn) {
 }
 
 void
-EchoServer::handleClose(Connection* conn) {
+EchoServer::handleClose(SptrConnection conn) {
   std::cout << "EchoServer conn closed." << std::endl;
 
   // 根据业务的需求，在这里可以增加其它的代码。
 }
 
 void
-EchoServer::handleError(Connection* conn) {
+EchoServer::handleError(SptrConnection conn) {
   std::cout << "EchoServer conn error." << std::endl;
 
   // 根据业务的需求，在这里可以增加其它的代码。
 }
 
 void
-EchoServer::handleMessage(Connection* conn, const std::string& message) {
+EchoServer::handleMessage(SptrConnection conn, const std::string& message) {
   printf("EchoServer::HandleMessage() thread is %ld.\n", syscall(SYS_gettid));
 
   // 把业务添加到线程池的任务队列中。
@@ -65,7 +65,7 @@ EchoServer::handleMessage(Connection* conn, const std::string& message) {
 }
 
 void
-EchoServer::handleSendComplete(Connection* conn) {
+EchoServer::handleSendComplete(SptrConnection conn) {
   std::cout << "Message send complete." << std::endl;
 
   // 根据业务的需求，在这里可以增加其它的代码。
@@ -79,7 +79,7 @@ EchoServer::handleTimeout(EventLoop* loop) {
 }
 
 void
-EchoServer::onMessage(Connection* conn, const std::string& message) {
+EchoServer::onMessage(SptrConnection conn, const std::string& message) {
   // 构造响应数据
   std::string reply = "reply:" + message;
   // 把临时缓冲区中的数据发送出去

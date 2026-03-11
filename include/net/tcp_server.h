@@ -24,12 +24,12 @@ private:
   // 一个服务器只有一个监听对象。
   Acceptor* acceptor_ = nullptr;
   // 一个服务器有多个已连接对象。
-  std::unordered_map<int, Connection*> conns_;
-  std::function<void(Connection*)> new_conn_callback_;
-  std::function<void(Connection*)> close_conn_callback_;
-  std::function<void(Connection*)> error_conn_callback_;
-  std::function<void(Connection*, const std::string& message)> on_msg_callback_;
-  std::function<void(Connection*)> send_complete_callback_;
+  std::unordered_map<int, SptrConnection> conns_;
+  std::function<void(SptrConnection)> new_conn_callback_;
+  std::function<void(SptrConnection)> close_conn_callback_;
+  std::function<void(SptrConnection)> error_conn_callback_;
+  std::function<void(SptrConnection, const std::string& message)> on_msg_callback_;
+  std::function<void(SptrConnection)> send_complete_callback_;
   std::function<void(EventLoop*)> timeout_callback_;
   // 线程池的大小，即从事件循环的个数。
   int thread_num_;
@@ -52,16 +52,16 @@ public:
   void newConnection(Socket* client_sock);
 
   // 关闭客户端的连接。
-  void closeConnection(Connection* conn);
+  void closeConnection(SptrConnection conn);
 
   // 客户端的连接错误。
-  void errorConnection(Connection* conn);
+  void errorConnection(SptrConnection conn);
 
   // 处理对端发送到服务端的信息。
-  void onMessage(Connection* conn, const std::string& msg);
+  void onMessage(SptrConnection conn, const std::string& msg);
 
   // 数据发送完成后，在Connection类中回调此函数。
-  void sendComplete(Connection* conn);
+  void sendComplete(SptrConnection conn);
 
   // epoll_wait()超时，
   void epollTimeout(EventLoop* loop);

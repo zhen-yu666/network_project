@@ -17,12 +17,13 @@ Connection::init() {
   client_channel_->setWriteCallback(
     std::bind(&Connection::writeCallback, this));
   // 客户端连上来的fd采用边缘触发。
-  client_channel_->useET();
+  // client_channel_->useET();
   // 让epoll监视clientchannel的读事件。
   client_channel_->enableReading();
 }
 
 Connection::~Connection() {
+  printf("Connection::~Connection() \n");
   delete client_sock_;
   client_sock_ = nullptr;
   delete client_channel_;
@@ -69,7 +70,7 @@ Connection::onMessage() {
         // 5 处理报文
         printf("message (eventfd=%d): %s\n", fd(), message.c_str());
 
-        onMsgCallback_(this, std::move(message));
+        onMsgCallback_(shared_from_this(), std::move(message));
       }
       break;
     } else if(nread == 0) {
@@ -92,6 +93,20 @@ Connection::send(const char* data, size_t size) {
 }
 
 void
+Connection::closeCallback() {
+  disconnect_ = true;
+  client_channel_->removeNode();
+  closeCallback_(shared_from_this());
+}
+
+void
+Connection::errorCallback() {
+  disconnect_ = true;
+  client_channel_->removeNode();
+  errorCallback_(shared_from_this());
+}
+
+void
 Connection::writeCallback() {
   // 尝试把outputbuffer_中的数据全部发送出去。
   int writen = ::send(fd(), output_buffer_.data(), output_buffer_.size(), 0);
@@ -102,6 +117,6 @@ Connection::writeCallback() {
   // 如果发送缓冲区中没有数据了，表示数据已发送完成，不再关注写事件。
   if(output_buffer_.size() == 0) {
     client_channel_->disableWriting();
-    sendCompleteCallback_(this);
+    sendCompleteCallback_(shared_from_this());
   }
 }

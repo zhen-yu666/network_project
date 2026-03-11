@@ -47,11 +47,6 @@ TcpServer::~TcpServer() {
 
   delete acceptor_;
   acceptor_ = nullptr;
-
-  for(auto& conn : conns_) {
-    delete conn.second;
-    conn.second = nullptr;
-  }
 }
 
 void
@@ -62,8 +57,8 @@ TcpServer::start() {
 void
 TcpServer::newConnection(Socket* client_sock) {
   // 后续可以采用负载均衡的方式，让从事件循环分配均匀
-  Connection* conn =
-    new Connection(sub_loops_[client_sock->fd() % thread_num_], client_sock);
+  SptrConnection conn(
+    new Connection(sub_loops_[client_sock->fd() % thread_num_], client_sock));
 
   conn->setCloseCallback(
     std::bind(&TcpServer::closeConnection, this, std::placeholders::_1));
@@ -81,35 +76,29 @@ TcpServer::newConnection(Socket* client_sock) {
 }
 
 void
-TcpServer::closeConnection(Connection* conn) {
+TcpServer::closeConnection(SptrConnection conn) {
   if(close_conn_callback_)
     close_conn_callback_(conn);
 
   conns_.erase(conn->fd());
-  // 调用Connection的析构，RAII
-  delete conn;
-  conn = nullptr;
 }
 
 void
-TcpServer::errorConnection(Connection* conn) {
+TcpServer::errorConnection(SptrConnection conn) {
   if(error_conn_callback_)
     error_conn_callback_(conn);
 
   conns_.erase(conn->fd());
-  // 调用Connection的析构，RAII
-  delete conn;
-  conn = nullptr;
 }
 
 void
-TcpServer::onMessage(Connection* conn, const std::string& msg) {
+TcpServer::onMessage(SptrConnection conn, const std::string& msg) {
   if(on_msg_callback_)
     on_msg_callback_(conn, msg);
 }
 
 void
-TcpServer::sendComplete(Connection* conn) {
+TcpServer::sendComplete(SptrConnection conn) {
   if(send_complete_callback_)
     send_complete_callback_(conn);
 }

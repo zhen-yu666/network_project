@@ -77,7 +77,5 @@ main(int argc, char* argv[]) {
     printf("recv:%s\n", buf);
   }
 
-  sleep(100);
-
   // printf("结束时间：%d",time(0));
 }

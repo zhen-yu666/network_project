@@ -7,12 +7,17 @@
 #include "base/socket.h"
 
 #include <functional>
+#include <memory>
+#include <atomic>
 
 class EventLoop;
 class Socket;
 class Channel;
 
-class Connection {
+class Connection;
+using SptrConnection = std::shared_ptr<Connection>;
+
+class Connection : public std::enable_shared_from_this<Connection> {
 private:
   // Connection对应的事件循环，在构造函数中传入。
   EventLoop* loop_ = nullptr;
@@ -24,14 +29,21 @@ private:
   Buffer input_buffer_;
   // 用户输出缓冲区
   Buffer output_buffer_;
-  // 设置关闭fd_的回调函数。
-  std::function<void(Connection*)> closeCallback_;
-  // 设置fd_发生了错误的回调函数。
-  std::function<void(Connection*)> errorCallback_;
+  // 客户端连接是否已断开，如果已断开，则设置为true。
+  std::atomic_bool disconnect_ = false;
+
+  // 关闭fd_的回调函数
+  // 将回调TcpServer::closeconnection()。
+  std::function<void(SptrConnection)> closeCallback_;
+  // fd_发生了错误的回调函数
+  // 将回调TcpServer::errorconnection()。
+  std::function<void(SptrConnection)> errorCallback_;
   // 处理报文的回调函数
-  std::function<void(Connection*, const std::string&)> onMsgCallback_;
+  // 将回调TcpServer::onmessage()。
+  std::function<void(SptrConnection, const std::string&)> onMsgCallback_;
   // 发送数据完成后的回调函数
-  std::function<void(Connection*)> sendCompleteCallback_;
+  // 将回调TcpServer::sendcomplete()。
+  std::function<void(SptrConnection)> sendCompleteCallback_;
 
 private:
   void init();
@@ -59,13 +71,13 @@ public:
   // 发送数据
   void send(const char* data, size_t size);
 
-  // TCP连接关闭（断开）的回调函数。
-  void closeCallback() { closeCallback_(this); }
+  // TCP连接关闭（断开）的回调函数，供Channel回调。
+  void closeCallback();
 
-  // TCP连接错误的回调函数。
-  void errorCallback() { errorCallback_(this); }
+  // TCP连接错误的回调函数，供Channel回调。
+  void errorCallback();
 
-  // 处理写事件的回调函数
+  // 处理写事件的回调函数，供Channel回调。
   void writeCallback();
 
   // 设置关闭fd_的回调函数。

@@ -24,12 +24,17 @@ private:
   // 当前套接字是否在epoll红黑树上。
   bool inEpoll_ = false;
   // fd_读事件的回调函数。
+  // 如果是acceptchannel，将回调Acceptor::newconnection()
+  // 如果是clientchannel，将回调Connection::onmessage()。
   std::function<void()> read_callback_;
-  // 关闭fd_的回调函数。
+  // 关闭fd_的回调函数
+  // 将回调Connection::closecallback()。
   std::function<void()> close_callback_;
-  // fd_发生了错误的回调函数。
+  // fd_发生了错误的回调函数
+  // 将回调Connection::errorcallback()。
   std::function<void()> error_callback_;
-  // fd_写事件的回调函数。
+  // fd_写事件的回调函数
+  // 将回调Connection::writecallback()。
   std::function<void()> write_callback_;
 
 public:
@@ -51,6 +56,12 @@ public:
 
   // 取消写事件
   void disableWriting();
+
+  // 取消全部的事件。
+  void disableAll();
+
+  // 从事件循环中删除Channel。
+  void removeNode();
 
   // 返回fd_成员。
   int getFd() { return fd_; }
