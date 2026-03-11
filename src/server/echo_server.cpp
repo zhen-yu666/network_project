@@ -1,5 +1,7 @@
 #include "server/echo_server.h"
 
+#include <sys/syscall.h>
+#include <unistd.h>
 #include <iostream>
 
 void
@@ -15,8 +17,13 @@ EchoServer::init() {
                                         std::placeholders::_2));
   tcpserver_.setSendCompleteCallback(
     std::bind(&EchoServer::handleSendComplete, this, std::placeholders::_1));
-  tcpserver_.setTimeoutCallback(
-    std::bind(&EchoServer::handleTimeout, this, std::placeholders::_1));
+  // tcpserver_.setTimeoutCallback(
+  //   std::bind(&EchoServer::handleTimeout, this, std::placeholders::_1));
+}
+
+EchoServer::~EchoServer() {
+  delete threads_;
+  threads_ = nullptr;
 }
 
 void
@@ -27,6 +34,9 @@ EchoServer::Start() {
 void
 EchoServer::handleNewConnection(Connection* conn) {
   std::cout << "New Connection Come in." << std::endl;
+
+  printf("EchoServer::HandleNewConnection() thread is %ld.\n",
+         syscall(SYS_gettid));
 
   // 根据业务的需求，在这里可以增加其它的代码。
 }
@@ -47,18 +57,11 @@ EchoServer::handleError(Connection* conn) {
 
 void
 EchoServer::handleMessage(Connection* conn, const std::string& message) {
-  // 构造响应数据
-  std::string reply = "reply:" + message;
-  /*
-  // 计算回应报文的大小
-  int len = reply.size();
-  // 把报文头部填充到回应报文中
-  std::string tmp_buf((char*)&len, 4);
-  // 把报文内容填充到回应报文中
-  tmp_buf.append(reply);
-*/
-  // 把临时缓冲区中的数据发送出去
-  conn->send(reply.data(), reply.size());
+  printf("EchoServer::HandleMessage() thread is %ld.\n", syscall(SYS_gettid));
+
+  // 把业务添加到线程池的任务队列中。
+  threads_->addTask(
+    std::bind(&EchoServer::onMessage, this, conn, std::move(message)));
 }
 
 void
@@ -73,4 +76,12 @@ EchoServer::handleTimeout(EventLoop* loop) {
   std::cout << "EchoServer timeout." << std::endl;
 
   // 根据业务的需求，在这里可以增加其它的代码。
+}
+
+void
+EchoServer::onMessage(Connection* conn, const std::string& message) {
+  // 构造响应数据
+  std::string reply = "reply:" + message;
+  // 把临时缓冲区中的数据发送出去
+  conn->send(reply.data(), reply.size());
 }

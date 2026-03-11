@@ -13,17 +13,20 @@ class EventLoop;
 class EchoServer {
 private:
   TcpServer tcpserver_;
+  ThreadPool* threads_;
 
 private:
   void init();
 
 public:
-  EchoServer(const std::string& ip, const uint16_t port)
-      : tcpserver_(ip, port) {
+  EchoServer(const std::string& ip, const uint16_t port, int sub_thread_num = 3,
+             int work_thread_num = 5)
+      : tcpserver_(ip, port, sub_thread_num),
+        threads_(new ThreadPool(work_thread_num)) {
     init();
   }
 
-  ~EchoServer() = default;
+  ~EchoServer();
 
   // 启动服务。
   void Start();
@@ -45,6 +48,9 @@ public:
 
   // epoll_wait()超时
   void handleTimeout(EventLoop* loop);
+
+  // 处理客户端的请求报文，用于添加给线程池。
+  void onMessage(Connection* conn, const std::string& message);
 };
 
 #endif

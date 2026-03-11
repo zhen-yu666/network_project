@@ -3,6 +3,7 @@
 #ifndef TCP_SERVER_H
 #define TCP_SERVER_H
 
+#include "base/thread_pool.h"
 #include "net/acceptor.h"
 #include "net/connection.h"
 #include "net/event_loop.h"
@@ -14,8 +15,12 @@ class Acceptor;
 
 class TcpServer {
 private:
-  // 一个TcpServer可以有多个事件循环。
-  EventLoop loop_;
+  // 主事件循环。
+  EventLoop* loop_ = nullptr;
+  // 存放从事件循环的容器。
+  std::vector<EventLoop*> sub_loops_;
+  // 线程池
+  ThreadPool* thread_pool_ = nullptr;
   // 一个服务器只有一个监听对象。
   Acceptor* acceptor_ = nullptr;
   // 一个服务器有多个已连接对象。
@@ -26,14 +31,16 @@ private:
   std::function<void(Connection*, const std::string& message)> on_msg_callback_;
   std::function<void(Connection*)> send_complete_callback_;
   std::function<void(EventLoop*)> timeout_callback_;
+  // 线程池的大小，即从事件循环的个数。
+  int thread_num_;
 
 private:
   void init(const std::string& ip, const uint16_t port);
 
 public:
-  template<typename Ip, typename Port>
-  TcpServer(Ip&& ip, Port&& port) {
-    init(std::forward<Ip>(ip), std::forward<Port>(port));
+  TcpServer(const std::string& ip, const uint16_t port, int thread_num)
+      : thread_num_(thread_num) {
+    init(ip, port);
   }
 
   ~TcpServer();

@@ -5,7 +5,7 @@ void
 EventLoop::run() {
   while(true) {
     // 存储epoll的rdlist的所有事件
-    std::vector<Channel*> channels = std::move(ep_->loop(10*1000));
+    std::vector<Channel*> channels = std::move(ep_->loop(10 * 1000));
 
     if(channels.size() == 0) {
       epoll_timeout_callback_(this);

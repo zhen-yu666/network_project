@@ -11,9 +11,6 @@ ThreadPool::init(size_t thread_num) {
   for(size_t i = 0; i < thread_num; i++) {
     // 创建线程
     threads_.emplace_back([this] {
-      // 显示线程ID。
-      printf("create thread(%ld).\n", syscall(SYS_gettid));
-
       while(!stop_) {
         // 用于存放出队的元素。
         std::function<void()> task;
@@ -34,7 +31,6 @@ ThreadPool::init(size_t thread_num) {
           task_queue_.pop();
         }
 
-        printf("thread is %ld.\n", syscall(SYS_gettid));
         // 执行任务。
         task();
       }
