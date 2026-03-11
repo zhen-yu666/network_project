@@ -6,6 +6,7 @@ set(SOURCES
   epoll.cpp
   channel.cpp
   buffer.cpp
+  thread_pool.cpp
 )
 
 add_library(base
