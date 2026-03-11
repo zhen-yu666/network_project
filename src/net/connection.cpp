@@ -52,7 +52,9 @@ Connection::onMessage() {
         if(input_buffer_.readableBytes() < sizeof(uint32_t))
           break;
         // 2 查看头部长度（不移动指针）
-        uint32_t len = input_buffer_.peekInt32();
+        // 网络库自动转换
+        uint32_t nlen = input_buffer_.peekInt32();
+        uint32_t len = ntohl(nlen);
         // 3 检查是否包含完整报文（头部 + 内容）
         if(input_buffer_.readableBytes() < len + sizeof(uint32_t))
           break;
@@ -80,7 +82,10 @@ Connection::onMessage() {
 
 void
 Connection::send(const char* data, size_t size) {
-  // 把需要发送的数据保存到Connection的发送缓冲区中。
+  // 使用 32 位长度，网络字节序
+  uint32_t len = htonl(static_cast<uint32_t>(size));
+  output_buffer_.ensureWritableBytes(sizeof(len) + sizeof(len));
+  output_buffer_.append(reinterpret_cast<char*>(&len), sizeof(len));
   output_buffer_.append(data, size);
   // 注册写事件。
   client_channel_->enableWriting();

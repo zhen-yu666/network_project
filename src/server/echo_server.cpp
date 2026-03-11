@@ -49,15 +49,16 @@ void
 EchoServer::handleMessage(Connection* conn, const std::string& message) {
   // 构造响应数据
   std::string reply = "reply:" + message;
+  /*
   // 计算回应报文的大小
   int len = reply.size();
   // 把报文头部填充到回应报文中
   std::string tmp_buf((char*)&len, 4);
   // 把报文内容填充到回应报文中
   tmp_buf.append(reply);
-
+*/
   // 把临时缓冲区中的数据发送出去
-  conn->send(tmp_buf.data(), tmp_buf.size());
+  conn->send(reply.data(), reply.size());
 }
 
 void

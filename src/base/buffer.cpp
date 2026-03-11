@@ -67,9 +67,8 @@ Buffer::peekInt32() const {
   uint32_t result = 0;
   memcpy(&result, p, sizeof(result));
   // 如果客户端发送时未做转换，直接返回
+  // buffer只负责发
   return result;
-  // 使用网络字节序返回
-  // return ntohl(result);
 }
 
 void
@@ -87,6 +86,11 @@ Buffer::append(const char* data, size_t len) {
   std::copy(data, data + len, beginWrite());
   hasWritten(len);
 }
+
+// void
+// Buffer::prependSize(const char* data, size_t len) {
+//   prepend(reinterpret_cast<char*>(&len), 4);
+// }
 
 // void
 // Buffer::prepend(const char* data, size_t len) {

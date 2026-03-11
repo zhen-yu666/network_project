@@ -46,7 +46,7 @@ main(int argc, char* argv[]) {
   printf("connect ok.\n");
   // printf("开始时间：%d",time(0));
 
-  for(int ii = 0; ii < 12; ii++) {
+  for(int ii = 0; ii < 2; ii++) {
     // 从命令行输入内容。
     memset(buf, 0, sizeof(buf));
     sprintf(buf, "这是第%d个超级女生。", ii);
@@ -56,7 +56,8 @@ main(int argc, char* argv[]) {
     // 报文大小
     int len = strlen(buf);
     // 加头部长度
-    memcpy(tmp_buf, &len, 4);
+    int nlen = htonl(len);
+    memcpy(tmp_buf, &nlen, 4);
     // 拼接内容
     memcpy(tmp_buf + 4, buf, len);
 
@@ -65,9 +66,10 @@ main(int argc, char* argv[]) {
   }
 
   for(int i = 0; i < 2; ++i) {
-    int len = 0;
+    int nlen = 0;
     // 先读取长度
-    recv(sockfd, &len, 4, 0);
+    recv(sockfd, &nlen, 4, 0);
+    int len = ntohl(nlen);
 
     memset(buf, 0, sizeof(buf));
     // 再读取内容
