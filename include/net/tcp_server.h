@@ -20,6 +20,12 @@ private:
   Acceptor* acceptor_ = nullptr;
   // 一个服务器有多个已连接对象。
   std::unordered_map<int, Connection*> conns_;
+  std::function<void(Connection*)> new_conn_callback_;
+  std::function<void(Connection*)> close_conn_callback_;
+  std::function<void(Connection*)> error_conn_callback_;
+  std::function<void(Connection*, const std::string& message)> on_msg_callback_;
+  std::function<void(Connection*)> send_complete_callback_;
+  std::function<void(EventLoop*)> timeout_callback_;
 
 private:
   void init(const std::string& ip, const uint16_t port);
@@ -52,6 +58,36 @@ public:
 
   // epoll_wait()超时，
   void epollTimeout(EventLoop* loop);
+
+  template<typename Callback>
+  void setNewConnCallback(Callback&& cb) {
+    new_conn_callback_ = std::forward<Callback>(cb);
+  }
+
+  template<typename Callback>
+  void setCloseConnCallback(Callback&& cb) {
+    close_conn_callback_ = std::forward<Callback>(cb);
+  }
+
+  template<typename Callback>
+  void setErrorConnCallback(Callback&& cb) {
+    error_conn_callback_ = std::forward<Callback>(cb);
+  }
+
+  template<typename Callback>
+  void setOnMsgCallback(Callback&& cb) {
+    on_msg_callback_ = std::forward<Callback>(cb);
+  }
+
+  template<typename Callback>
+  void setSendCompleteCallback(Callback&& cb) {
+    send_complete_callback_ = std::forward<Callback>(cb);
+  }
+
+  template<typename Callback>
+  void setTimeoutCallback(Callback&& cb) {
+    timeout_callback_ = std::forward<Callback>(cb);
+  }
 };
 
 #endif

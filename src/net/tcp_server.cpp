@@ -6,12 +6,6 @@
 #include <unistd.h>
 #include <cstring>
 
-// #define TCP_SERVER_DEBUG 1
-#ifdef TCP_SERVER_DEBUG
-#include <cstdio>
-#define PRINTF(fmt, ...) printf(fmt, ##__VA_ARGS__);
-#endif
-
 void
 TcpServer::init(const std::string& ip, const uint16_t port) {
   acceptor_ = new Acceptor(&loop_, ip, port);
@@ -47,20 +41,17 @@ TcpServer::newConnection(Socket* client_sock) {
   conn->setSendCompleteCallback(
     std::bind(&TcpServer::sendComplete, this, std::placeholders::_1));
 
-#ifdef TCP_SERVER_DEBUG
-  PRINTF("new connection(fd=%d,ip=%s,port=%d) ok.\n", conn->fd(),
-         conn->ip().c_str(), conn->port());
-#endif
-
   conns_.insert({conn->fd(), conn});
+
+  if(new_conn_callback_)
+    new_conn_callback_(conn);
 }
 
 void
 TcpServer::closeConnection(Connection* conn) {
+  if(close_conn_callback_)
+    close_conn_callback_(conn);
 
-#ifdef TCP_SERVER_DEBUG
-  PRINTF("client(eventfd=%d) disconnected.\n", conn->fd());
-#endif
   conns_.erase(conn->fd());
   // 调用Connection的析构，RAII
   delete conn;
@@ -69,10 +60,9 @@ TcpServer::closeConnection(Connection* conn) {
 
 void
 TcpServer::errorConnection(Connection* conn) {
+  if(error_conn_callback_)
+    error_conn_callback_(conn);
 
-#ifdef TCP_SERVER_DEBUG
-  PRINTF("client(eventfd=%d) error.\n", conn->fd());
-#endif
   conns_.erase(conn->fd());
   // 调用Connection的析构，RAII
   delete conn;
@@ -81,27 +71,18 @@ TcpServer::errorConnection(Connection* conn) {
 
 void
 TcpServer::onMessage(Connection* conn, const std::string& msg) {
-  // 构造响应数据
-  std::string reply = "reply:" + msg;
-  // 计算回应报文的大小
-  int len = reply.size();
-  // 把报文头部填充到回应报文中
-  std::string tmp_buf((char*)&len, 4);
-  // 把报文内容填充到回应报文中
-  tmp_buf.append(reply);
-
-  // 把临时缓冲区中的数据发送出去
-  conn->send(tmp_buf.data(), tmp_buf.size());
+  if(on_msg_callback_)
+    on_msg_callback_(conn, msg);
 }
 
 void
 TcpServer::sendComplete(Connection* conn) {
-  printf("send complete.\n");
-  // 业务代码
+  if(send_complete_callback_)
+    send_complete_callback_(conn);
 }
 
 void
 TcpServer::epollTimeout(EventLoop* loop) {
-  printf("epoll_wait() timeout.\n");
-  // 业务代码
+  if(timeout_callback_)
+    timeout_callback_(loop);
 }
