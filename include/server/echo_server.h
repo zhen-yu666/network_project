@@ -19,8 +19,8 @@ private:
   void init();
 
 public:
-  EchoServer(const std::string& ip, const uint16_t port, int sub_thread_num = 3,
-             int work_thread_num = 5)
+  EchoServer(const std::string& ip, const uint16_t port, int sub_thread_num = 2,
+             int work_thread_num = 2)
       : tcpserver_(ip, port, sub_thread_num),
         threads_(new ThreadPool(work_thread_num)) {
     init();

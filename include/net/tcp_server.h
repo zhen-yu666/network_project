@@ -16,9 +16,9 @@ class Acceptor;
 class TcpServer {
 private:
   // 主事件循环。
-  EventLoop* loop_ = nullptr;
+  EventLoop* main_loop_ = nullptr;
   // 存放从事件循环的容器。
-  std::vector<EventLoop*> sub_loops_;
+  std::vector<std::unique_ptr<EventLoop>> sub_loops_;
   // 线程池
   ThreadPool* thread_pool_ = nullptr;
   // 一个服务器只有一个监听对象。
