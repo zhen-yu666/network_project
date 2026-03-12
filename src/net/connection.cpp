@@ -10,13 +10,11 @@ void
 Connection::init() {
   client_channel_ = std::make_unique<Channel>(loop_, client_sock_->fd());
 
-  client_channel_->setReadCallback(std::bind(&Connection::onMessage, this));
-  client_channel_->setCloseCallback(
-    std::bind(&Connection::closeCallback, this));
-  client_channel_->setErrorCallback(
-    std::bind(&Connection::errorCallback, this));
-  client_channel_->setWriteCallback(
-    std::bind(&Connection::writeCallback, this));
+  client_channel_->setReadCallback([this]() { onMessage(); });
+  client_channel_->setCloseCallback([this]() { closeCallback(); });
+  client_channel_->setErrorCallback([this]() { errorCallback(); });
+  client_channel_->setWriteCallback([this]() { writeCallback(); });
+
   // 客户端连上来的fd采用边缘触发。
   client_channel_->useET();
   // 让epoll监视clientchannel的读事件。

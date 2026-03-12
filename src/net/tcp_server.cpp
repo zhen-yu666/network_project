@@ -13,12 +13,13 @@ TcpServer::init(const std::string& ip, const uint16_t port) {
 
   // 设置timeout超时的回调函数。
   main_loop_->setEpollTimeoutCallback(
-    std::bind(&TcpServer::epollTimeout, this, std::placeholders::_1));
+    [this](EventLoop* loop) { epollTimeout(loop); });
 
   acceptor_ = std::make_unique<Acceptor>(main_loop_, ip, port);
 
-  acceptor_->setNewConnCallback(
-    std::bind(&TcpServer::newConnection, this, std::placeholders::_1));
+  acceptor_->setNewConnCallback([this](std::unique_ptr<Socket> client_sock) {
+    newConnection(std::move(client_sock));
+  });
 
   // 创建线程池
   thread_pool_ = std::make_unique<ThreadPool>(thread_num_);
@@ -29,9 +30,8 @@ TcpServer::init(const std::string& ip, const uint16_t port) {
     sub_loops_.emplace_back(std::make_unique<EventLoop>());
     // 设置timeout超时的回调函数。
     sub_loops_[i]->setEpollTimeoutCallback(
-      std::bind(&TcpServer::epollTimeout, this, std::placeholders::_1));
-    // 在线程池中运行从事件循环。
-    thread_pool_->addTask(std::bind(&EventLoop::run, sub_loops_[i].get()));
+      [this](EventLoop* loop) { epollTimeout(loop); });
+    thread_pool_->addTask([loop = sub_loops_[i].get()]() { loop->run(); });
   }
 }
 
@@ -95,14 +95,14 @@ TcpServer::newConnection(std::unique_ptr<Socket> client_sock) {
 
     // 设置各种回调（这些回调将在子线程中触发）
     conn->setCloseCallback(
-      std::bind(&TcpServer::closeConnection, this, std::placeholders::_1));
+      [this](SptrConnection conn) { closeConnection(conn); });
     conn->setErrorCallback(
-      std::bind(&TcpServer::errorConnection, this, std::placeholders::_1));
-    conn->setOnMsgCallback(std::bind(&TcpServer::onMessage, this,
-                                     std::placeholders::_1,
-                                     std::placeholders::_2));
+      [this](SptrConnection conn) { errorConnection(conn); });
+    conn->setOnMsgCallback([this](SptrConnection conn, const std::string& msg) {
+      onMessage(conn, std::move(msg));
+    });
     conn->setSendCompleteCallback(
-      std::bind(&TcpServer::sendComplete, this, std::placeholders::_1));
+      [this](SptrConnection conn) { sendComplete(conn); });
 
     // 将新连接加入主线程的映射表（conns_ 由主线程独占访问）
     // 因此需要再通过主线程的 queueInLoop 抛回主线程执行

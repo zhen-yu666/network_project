@@ -7,18 +7,19 @@
 void
 EchoServer::init() {
   tcpserver_.setNewConnCallback(
-    std::bind(&EchoServer::handleNewConnection, this, std::placeholders::_1));
+    [this](SptrConnection conn) { handleNewConnection(conn); });
   tcpserver_.setCloseConnCallback(
-    std::bind(&EchoServer::handleClose, this, std::placeholders::_1));
+    [this](SptrConnection conn) { handleClose(conn); });
   tcpserver_.setErrorConnCallback(
-    std::bind(&EchoServer::handleError, this, std::placeholders::_1));
-  tcpserver_.setOnMsgCallback(std::bind(&EchoServer::handleMessage, this,
-                                        std::placeholders::_1,
-                                        std::placeholders::_2));
+    [this](SptrConnection conn) { handleError(conn); });
+  tcpserver_.setOnMsgCallback(
+    [this](SptrConnection conn, const std::string& message) {
+      handleMessage(conn, std::move(message));
+    });
   tcpserver_.setSendCompleteCallback(
-    std::bind(&EchoServer::handleSendComplete, this, std::placeholders::_1));
+    [this](SptrConnection conn) { handleSendComplete(conn); });
   // tcpserver_.setTimeoutCallback(
-  //   std::bind(&EchoServer::handleTimeout, this, std::placeholders::_1));
+  //   [this](EventLoop* loop) { handleTimeout(loop); });
 }
 
 void
