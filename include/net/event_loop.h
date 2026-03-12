@@ -15,7 +15,7 @@ class Channel;
 class EventLoop {
 private:
   // 每个事件循环只有一个Epoll。
-  Epoll* ep_;
+  std::unique_ptr<Epoll> ep_;
   // epoll_wait()超时的回调函数。
   std::function<void(EventLoop*)> epoll_timeout_callback_;
 

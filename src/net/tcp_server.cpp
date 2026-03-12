@@ -10,22 +10,26 @@ void
 TcpServer::init(const std::string& ip, const uint16_t port) {
   // 创建主事件循环。
   main_loop_ = new EventLoop;
+
   // 设置timeout超时的回调函数。
   main_loop_->setEpollTimeoutCallback(
     std::bind(&TcpServer::epollTimeout, this, std::placeholders::_1));
 
-  acceptor_ = new Acceptor(main_loop_, ip, port);
+  // acceptor_ = new Acceptor(main_loop_, ip, port);
+  acceptor_ = std::make_unique<Acceptor>(main_loop_, ip, port);
 
   acceptor_->setNewConnCallback(
     std::bind(&TcpServer::newConnection, this, std::placeholders::_1));
 
   // 创建线程池
-  thread_pool_ = new ThreadPool(thread_num_);
+  thread_pool_ = std::make_unique<ThreadPool>(thread_num_);
+  // thread_pool_ = new ThreadPool(thread_num_);
 
   // 创建从事件循环。
   for(int i = 0; i < thread_num_; ++i) {
     // 创建从事件循环，存入subloops_容器中。
-    sub_loops_.emplace_back(new EventLoop);
+    // sub_loops_.emplace_back(new EventLoop);
+    sub_loops_.emplace_back(std::make_unique<EventLoop>());
     // 设置timeout超时的回调函数。
     sub_loops_[i]->setEpollTimeoutCallback(
       std::bind(&TcpServer::epollTimeout, this, std::placeholders::_1));
@@ -37,12 +41,6 @@ TcpServer::init(const std::string& ip, const uint16_t port) {
 TcpServer::~TcpServer() {
   delete main_loop_;
   main_loop_ = nullptr;
-
-  delete thread_pool_;
-  thread_pool_ = nullptr;
-
-  delete acceptor_;
-  acceptor_ = nullptr;
 }
 
 void

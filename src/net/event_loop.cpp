@@ -25,7 +25,7 @@ EventLoop::init() {
 void
 EventLoop::wakeup() {
   uint64_t one = 1;
-  ssize_t n = write(wakeup_fd_, &one, sizeof(one));
+  uint64_t n = write(wakeup_fd_, &one, sizeof(one));
   if(n != sizeof(one)) {
     // 写入失败可忽略（可能被信号中断），生产环境可记录日志
   }
@@ -34,7 +34,7 @@ EventLoop::wakeup() {
 void
 EventLoop::handleRead() {
   uint64_t one;
-  ssize_t n = read(wakeup_fd_, &one, sizeof(one));
+  uint64_t n = read(wakeup_fd_, &one, sizeof(one));
   if(n != sizeof(one)) {
     // 读取失败可忽略
   }
@@ -62,9 +62,6 @@ EventLoop::doPendingFunctors() {
 }
 
 EventLoop::~EventLoop() {
-  delete ep_;
-  ep_ = nullptr;
-
   close(wakeup_fd_);
 }
 
@@ -98,7 +95,6 @@ EventLoop::removeChannel(Channel* ch) {
   ep_->removeChannel(ch);
 }
 
-
 void
 EventLoop::runInLoop(std::function<void()> cb) {
   if(isInLoopThread()) {
@@ -109,7 +105,6 @@ EventLoop::runInLoop(std::function<void()> cb) {
     queueInLoop(std::move(cb));
   }
 }
-
 
 void
 EventLoop::queueInLoop(std::function<void()> cb) {

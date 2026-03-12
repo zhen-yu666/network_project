@@ -46,7 +46,7 @@ main(int argc, char* argv[]) {
   printf("connect ok.\n");
   // printf("开始时间：%d",time(0));
 
-  for(int ii = 0; ii < 100; ii++) {
+  for(int ii = 0; ii < 1; ii++) {
     // 从命令行输入内容。
     memset(buf, 0, sizeof(buf));
     sprintf(buf, "这是第%d个超级女生。", ii);
@@ -65,7 +65,7 @@ main(int argc, char* argv[]) {
     send(sockfd, tmp_buf, len + 4, 0);
   }
 
-  for(int i = 0; i < 100; ++i) {
+  for(int i = 0; i < 1; ++i) {
     int nlen = 0;
     // 先读取长度
     recv(sockfd, &nlen, 4, 0);

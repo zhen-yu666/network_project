@@ -23,6 +23,7 @@ private:
   uint32_t revents_ = 0;
   // 当前套接字是否在epoll红黑树上。
   bool inEpoll_ = false;
+
   // fd_读事件的回调函数。
   // 如果是acceptchannel，将回调Acceptor::newconnection()
   // 如果是clientchannel，将回调Connection::onmessage()。

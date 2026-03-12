@@ -20,20 +20,26 @@ private:
   // 存放从事件循环的容器。
   std::vector<std::unique_ptr<EventLoop>> sub_loops_;
   // 线程池
-  ThreadPool* thread_pool_ = nullptr;
+  std::unique_ptr<ThreadPool> thread_pool_;
   // 一个服务器只有一个监听对象。
-  Acceptor* acceptor_ = nullptr;
-
+  std::unique_ptr<Acceptor> acceptor_;
   // 一个TcpServer有多个Connection对象，存放在map容器中。
   std::unordered_map<int, SptrConnection> conns_;
+
   // 回调EchoServer::HandleNewConnection()。
   std::function<void(SptrConnection)> new_conn_callback_;
+  // 回调EchoServer::HandleClose()。
   std::function<void(SptrConnection)> close_conn_callback_;
+  // 回调EchoServer::HandleError()。
   std::function<void(SptrConnection)> error_conn_callback_;
+  // 回调EchoServer::HandleMessage()。
   std::function<void(SptrConnection, const std::string& message)>
     on_msg_callback_;
+  // 回调EchoServer::HandleSendComplete()。
   std::function<void(SptrConnection)> send_complete_callback_;
+  // 回调EchoServer::HandleTimeOut()。
   std::function<void(EventLoop*)> timeout_callback_;
+
   // 线程池的大小，即从事件循环的个数。
   int thread_num_;
 

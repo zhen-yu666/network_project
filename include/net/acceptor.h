@@ -22,6 +22,7 @@ private:
   std::unique_ptr<Socket> listen_sock_;
   // Acceptor对应的channel，在构造函数中创建。
   std::unique_ptr<Channel> listen_channel_;
+
   // 处理新客户端连接请求的回调函数。
   std::function<void(std::unique_ptr<Socket>)> new_conn_callback_;
 
