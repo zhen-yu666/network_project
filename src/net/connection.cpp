@@ -40,26 +40,25 @@ Connection::onMessage() {
       // 全部的数据已读取完毕。
 
       while(true) {
-        // 1 检查是否至少有 4 字节头部
+        // 检查是否至少有 4 字节头部
         if(input_buffer_.readableBytes() < sizeof(uint32_t))
           break;
-        // 2 查看头部长度（不移动指针）
+        // 查看头部长度（不移动指针）
         // 网络库自动转换
         uint32_t nlen = input_buffer_.peekInt32();
         uint32_t len = ntohl(nlen);
-        // 3 检查是否包含完整报文（头部 + 内容）
+        // 检查是否包含完整报文（头部 + 内容）
         if(input_buffer_.readableBytes() < len + sizeof(uint32_t))
           break;
-        // 4 取出完整报文
-        // 4.1 跳过头部
+        // 取出完整报文
+        // 跳过头部
         input_buffer_.retrieve(sizeof(uint32_t));
-        // 4.2 提取内容
+        // 提取内容
         std::string message(input_buffer_.peek(), len);
-        // 4.3 跳过内容
+        // 跳过内容
         input_buffer_.retrieve(len);
 
-        // 5 处理报文
-        printf("message (eventfd=%d): %s\n", fd(), message.c_str());
+        // 处理报文
 
         // 更新Connection的时间戳。
         last_receive_time_ = Timestamp::now();

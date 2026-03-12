@@ -2,7 +2,6 @@
 
 #include <sys/syscall.h>
 #include <unistd.h>
-#include <iostream>
 
 void
 EchoServer::init() {
@@ -23,31 +22,36 @@ EchoServer::init() {
 }
 
 void
-EchoServer::Start() {
+EchoServer::start() {
   tcpserver_.start();
 }
 
 void
+EchoServer::stop() {
+  // 停止工作线程。
+  threads_->stop();
+  printf("工作线程已停止。\n");
+
+  // 停止IO线程（事件循环）。
+  tcpserver_.stop();
+}
+
+void
 EchoServer::handleNewConnection(SptrConnection conn) {
-  std::cout << "New Connection Come in." << std::endl;
-
-  printf("EchoServer::HandleNewConnection() thread is %ld.\n",
-         syscall(SYS_gettid));
-
+  printf("new connection(fd=%d,ip=%s,port=%d) ok.\n", conn->fd(),
+         conn->ip().c_str(), conn->port());
   // 根据业务的需求，在这里可以增加其它的代码。
 }
 
 void
 EchoServer::handleClose(SptrConnection conn) {
-  std::cout << "EchoServer conn closed." << std::endl;
-
+  printf("connection closed(fd=%d,ip=%s,port=%d).\n", conn->fd(),
+         conn->ip().c_str(), conn->port());
   // 根据业务的需求，在这里可以增加其它的代码。
 }
 
 void
 EchoServer::handleError(SptrConnection conn) {
-  std::cout << "EchoServer conn error." << std::endl;
-
   // 根据业务的需求，在这里可以增加其它的代码。
 }
 
@@ -65,21 +69,16 @@ EchoServer::handleMessage(SptrConnection conn, const std::string& message) {
 
 void
 EchoServer::handleSendComplete(SptrConnection conn) {
-  std::cout << "Message send complete." << std::endl;
-
   // 根据业务的需求，在这里可以增加其它的代码。
 }
 
 void
 EchoServer::handleTimeout(EventLoop* loop) {
-  std::cout << "EchoServer timeout." << std::endl;
-
   // 根据业务的需求，在这里可以增加其它的代码。
 }
 
 void
 EchoServer::onMessage(SptrConnection conn, const std::string& message) {
-  printf("EchoServer::onMessage() thread is %ld.\n", syscall(SYS_gettid));
   // 构造响应数据
   std::string reply = "reply:" + message;
   // 把临时缓冲区中的数据发送出去

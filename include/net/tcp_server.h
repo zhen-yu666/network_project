@@ -59,6 +59,9 @@ public:
   // 运行每一个所管理的事件循环。
   void start();
 
+  // 停止 IO 线程和事件循环
+  void stop();
+
   // 处理新客户端连接请求。
   void newConnection(std::unique_ptr<Socket> client_sock);
 

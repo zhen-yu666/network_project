@@ -50,6 +50,8 @@ public:
 
   // 返回池中线程个数
   uint64_t size() const { return threads_.size(); }
+
+  void stop();
 };
 
 #endif

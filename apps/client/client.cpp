@@ -19,7 +19,7 @@
 int
 main(int argc, char* argv[]) {
   if(argc != 3) {
-    printf("usage:./client ip port\n");
+    printf("usage:./bin/client 10.6.0.14 8080\n");
     return -1;
   }
 

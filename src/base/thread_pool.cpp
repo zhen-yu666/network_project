@@ -40,7 +40,16 @@ ThreadPool::init(size_t thread_num) {
 
 void
 ThreadPool::destory() {
+  stop();
+}
+
+void
+ThreadPool::stop() {
+  if(stop_)
+    return;
+
   stop_ = true;
+
   // 唤醒全部的线程
   cv_.notify_all();
   // 等待全部线程退出

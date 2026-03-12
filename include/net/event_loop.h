@@ -47,6 +47,8 @@ private:
   // 回调 TcpServer::removeConnection
   std::function<void(SptrConnection)> remove_conn_callback_;
 
+  std::atomic_bool stop_ = false;
+
 private:
   void init();
 
@@ -72,6 +74,9 @@ public:
 
   // 运行事件循环。
   void run();
+
+  // 终止事件循环
+  void stop();
 
   // 更新/添加 Channel 到 epoll
   void updateChannel(Channel* ch);

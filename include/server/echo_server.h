@@ -29,7 +29,10 @@ public:
   ~EchoServer() = default;
 
   // 启动服务。
-  void Start();
+  void start();
+
+  // 停止服务
+  void stop();
 
   // 处理新客户端连接请求
   void handleNewConnection(SptrConnection conn);

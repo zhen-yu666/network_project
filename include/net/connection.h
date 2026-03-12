@@ -59,7 +59,6 @@ private:
   // 在 IO 线程中实际执行发生操作
   void sendInLoop(const std::string& message) {
     // 复用已有的发送逻辑（注意 message 可能较大，考虑移动）
-    printf("Connection::send() thread is %ld.\n", syscall(SYS_gettid));
     send(message.data(), message.size());
   }
 

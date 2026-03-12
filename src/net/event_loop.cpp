@@ -102,7 +102,7 @@ EventLoop::~EventLoop() {
 
 void
 EventLoop::run() {
-  while(true) {
+  while(!stop_) {
     // 存储epoll的rdlist的所有事件
     std::vector<Channel*> channels = std::move(ep_->loop(10 * 1000));
 
@@ -118,6 +118,14 @@ EventLoop::run() {
     // 每次事件循环的末尾，执行所有跨线程投递的任务（pending functors）
     doPendingFunctors();
   }
+}
+
+void
+EventLoop::stop() {
+  stop_ = true;
+  // 唤醒事件循环
+  // 如果没有这行代码，事件循环将在下次闹钟响时或epoll_wait()超时时才会停下来。
+  wakeup();
 }
 
 void
@@ -171,7 +179,6 @@ EventLoop::handleTimer() {
   // 遍历所有连接，检查是否超时
   for(auto it = conns_.begin(); it != conns_.end();) {
     if(it->second->isIdle(idle_timeout_)) {
-      printf("EventLoop::handleTimer: connection %d timeout\n", it->first);
       // 超时，通过回调通知 TcpServer 清理全局资源
       auto conn = it->second;
       // 先从本地删除

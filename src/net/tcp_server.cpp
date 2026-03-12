@@ -59,6 +59,23 @@ TcpServer::start() {
   main_loop_->run();
 }
 
+void
+TcpServer::stop() {
+  // 停止主事件循环。
+  main_loop_->stop();
+  printf("主事件循环已停止。\n");
+
+  // 停止从事件循环。
+  for(int ii = 0; ii < thread_num_; ii++) {
+    sub_loops_[ii]->stop();
+  }
+  printf("从事件循环已停止。\n");
+
+  // 停止IO线程。
+  thread_pool_->stop();
+  printf("IO线程池停止。\n");
+}
+
 /* 
 void
 TcpServer::newConnection(std::unique_ptr<Socket> client_sock) {
@@ -182,7 +199,6 @@ TcpServer::epollTimeout(EventLoop* loop) {
 
 void
 TcpServer::removeConnection(SptrConnection conn) {
-  printf("TcpServer::removeConnection: fd=%d\n", conn->fd());
   std::lock_guard<std::mutex> lock(mtx_);
   auto it = conns_.find(conn->fd());
   if(it != conns_.end()) {
