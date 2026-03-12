@@ -3,8 +3,11 @@
 #ifndef ACCEPTOR_H
 #define ACCEPTOR_H
 
+#include "base/channel.h"
+
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <string>
 
 class Socket;
@@ -16,22 +19,22 @@ private:
   // Acceptor对应的事件循环，在构造函数中传入。
   EventLoop* loop_ = nullptr;
   // 服务端用于监听的socket，在构造函数中创建。
-  Socket* listen_sock_ = nullptr;
+  std::unique_ptr<Socket> listen_sock_;
   // Acceptor对应的channel，在构造函数中创建。
-  Channel* listen_channel_ = nullptr;
+  std::unique_ptr<Channel> listen_channel_;
   // 处理新客户端连接请求的回调函数。
-  std::function<void(Socket*)> new_conn_callback_;
+  std::function<void(std::unique_ptr<Socket>)> new_conn_callback_;
 
 private:
   void init(const std::string& ip, const uint16_t port);
 
 public:
-  template<typename Ip, typename Port>
-  Acceptor(EventLoop* loop, Ip&& ip, Port& port) : loop_(loop) {
-    init(std::forward<Ip>(ip), std::forward<Port>(port));
+  Acceptor(EventLoop* loop, const std::string& ip, const uint16_t port)
+      : loop_(loop), listen_sock_(nullptr), listen_channel_(nullptr) {
+    init(std::move(ip), port);
   }
 
-  ~Acceptor();
+  ~Acceptor() = default;
 
   // 处理新客户端连接请求。
   void newConnection();

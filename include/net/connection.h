@@ -6,9 +6,9 @@
 #include "base/buffer.h"
 #include "base/socket.h"
 
+#include <atomic>
 #include <functional>
 #include <memory>
-#include <atomic>
 
 class EventLoop;
 class Socket;
@@ -22,9 +22,9 @@ private:
   // Connection对应的事件循环，在构造函数中传入。
   EventLoop* loop_ = nullptr;
   // 与客户端通讯的Socket。
-  Socket* client_sock_ = nullptr;
+  std::unique_ptr<Socket> client_sock_;
   // Connection对应的channel，在构造函数中创建。
-  Channel* client_channel_ = nullptr;
+  std::unique_ptr<Channel> client_channel_;
   // 用户输入缓冲区
   Buffer input_buffer_;
   // 用户输出缓冲区
@@ -49,12 +49,12 @@ private:
   void init();
 
 public:
-  Connection(EventLoop* loop, Socket* client_sock_)
-      : loop_(loop), client_sock_(client_sock_) {
+  Connection(EventLoop* loop, std::unique_ptr<Socket> client_sock)
+      : loop_(loop), client_sock_(std::move(client_sock)) {
     init();
   }
 
-  ~Connection();
+  ~Connection() = default;
 
   // 返回fd_成员。
   const int fd() const { return client_sock_->fd(); }

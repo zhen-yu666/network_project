@@ -23,12 +23,15 @@ private:
   ThreadPool* thread_pool_ = nullptr;
   // 一个服务器只有一个监听对象。
   Acceptor* acceptor_ = nullptr;
-  // 一个服务器有多个已连接对象。
+
+  // 一个TcpServer有多个Connection对象，存放在map容器中。
   std::unordered_map<int, SptrConnection> conns_;
+  // 回调EchoServer::HandleNewConnection()。
   std::function<void(SptrConnection)> new_conn_callback_;
   std::function<void(SptrConnection)> close_conn_callback_;
   std::function<void(SptrConnection)> error_conn_callback_;
-  std::function<void(SptrConnection, const std::string& message)> on_msg_callback_;
+  std::function<void(SptrConnection, const std::string& message)>
+    on_msg_callback_;
   std::function<void(SptrConnection)> send_complete_callback_;
   std::function<void(EventLoop*)> timeout_callback_;
   // 线程池的大小，即从事件循环的个数。
@@ -49,7 +52,7 @@ public:
   void start();
 
   // 处理新客户端连接请求。
-  void newConnection(Socket* client_sock);
+  void newConnection(std::unique_ptr<Socket> client_sock);
 
   // 关闭客户端的连接。
   void closeConnection(SptrConnection conn);

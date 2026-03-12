@@ -15,6 +15,7 @@ TcpServer::init(const std::string& ip, const uint16_t port) {
     std::bind(&TcpServer::epollTimeout, this, std::placeholders::_1));
 
   acceptor_ = new Acceptor(loop_, ip, port);
+
   acceptor_->setNewConnCallback(
     std::bind(&TcpServer::newConnection, this, std::placeholders::_1));
 
@@ -55,11 +56,14 @@ TcpServer::start() {
 }
 
 void
-TcpServer::newConnection(Socket* client_sock) {
+TcpServer::newConnection(std::unique_ptr<Socket> client_sock) {
+  // 如果构造函数内部调用了 shared_from_this()，可能在此处抛出异常
+  // 这里是先 new 对象，然后再关联。而使用 make_shared 是直接一步到位
+  // SptrConnection conn(new Connection(
+  //   sub_loops_[client_sock->fd() % thread_num_], std::move(client_sock)));
   // 后续可以采用负载均衡的方式，让从事件循环分配均匀
-  SptrConnection conn(
-    new Connection(sub_loops_[client_sock->fd() % thread_num_], client_sock));
-
+  SptrConnection conn = std::make_shared<Connection>(
+    sub_loops_[client_sock->fd() % thread_num_], std::move(client_sock));
   conn->setCloseCallback(
     std::bind(&TcpServer::closeConnection, this, std::placeholders::_1));
   conn->setErrorCallback(

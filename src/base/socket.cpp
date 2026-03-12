@@ -3,6 +3,7 @@
 #include <netinet/tcp.h>
 #include <unistd.h>
 
+#define SOCKET_DEBUG
 #ifdef SOCKET_DEBUG
 
 #include <cstdio>
