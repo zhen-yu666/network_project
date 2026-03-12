@@ -5,9 +5,12 @@
 
 #include "base/epoll.h"
 
+#include <sys/eventfd.h>
 #include <functional>
 #include <mutex>
 #include <thread>
+
+enum class LoopType : bool { MainLoop, SubLoop };
 
 class Epoll;
 class Channel;
@@ -22,7 +25,7 @@ private:
   // 记录本 EventLoop 所属的线程 ID
   std::thread::id thread_id_;
   // eventfd 文件描述符，用于唤醒
-  int wakeup_fd_;
+  int64_t wakeup_fd_;
   // 包装 wakeupFd_ 的 Channel
   std::unique_ptr<Channel> wakeup_channel_;
   // 待执行的任务队列（由其他线程投递）
@@ -31,6 +34,13 @@ private:
   std::mutex mtx_;
   // 标记当前是否正在执行 pending functors
   bool calling_pending_functors_;
+
+  // 当前循环类型
+  LoopType type_;
+  // 定时器的fd。
+  int timer_fd_;
+  // 定时器的Channel。
+  std::unique_ptr<Channel> timer_channel_;
 
 private:
   void init();
@@ -46,10 +56,11 @@ private:
 
 public:
   // 在构造函数中创建Epoll对象ep_。
-  EventLoop()
+  EventLoop(LoopType type)
       : ep_(new Epoll),
         thread_id_(std::this_thread::get_id()),
-        calling_pending_functors_(false) {
+        calling_pending_functors_(false),
+        type_(type) {
     init();
   }
 
@@ -80,6 +91,9 @@ public:
 
   // 无论当前线程是谁，都将 cb 放入队列并唤醒 loop 线程（如果需要）
   void queueInLoop(std::function<void()> cb);
+
+  // 闹钟响时执行的函数。
+  void handleTimer();
 };
 
 #endif

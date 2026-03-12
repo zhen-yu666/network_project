@@ -61,6 +61,9 @@ Connection::onMessage() {
         // 5 处理报文
         printf("message (eventfd=%d): %s\n", fd(), message.c_str());
 
+        // 更新Connection的时间戳。
+        last_receive_time_ = Timestamp::now();
+
         onMsgCallback_(shared_from_this(), std::move(message));
       }
       break;

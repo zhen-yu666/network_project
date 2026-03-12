@@ -9,7 +9,7 @@
 void
 TcpServer::init(const std::string& ip, const uint16_t port) {
   // 创建主事件循环。
-  main_loop_ = new EventLoop;
+  main_loop_ = new EventLoop(LoopType::MainLoop);
 
   // 设置timeout超时的回调函数。
   main_loop_->setEpollTimeoutCallback(
@@ -27,7 +27,7 @@ TcpServer::init(const std::string& ip, const uint16_t port) {
   // 创建从事件循环。
   for(int i = 0; i < thread_num_; ++i) {
     // 创建从事件循环，存入subloops_容器中。
-    sub_loops_.emplace_back(std::make_unique<EventLoop>());
+    sub_loops_.emplace_back(std::make_unique<EventLoop>(LoopType::SubLoop));
     // 设置timeout超时的回调函数。
     sub_loops_[i]->setEpollTimeoutCallback(
       [this](EventLoop* loop) { epollTimeout(loop); });

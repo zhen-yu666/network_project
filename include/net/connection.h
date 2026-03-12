@@ -3,6 +3,7 @@
 #ifndef CONNECTION_H
 #define CONNECTION_H
 
+#include <base/timestamp.h>
 #include "base/buffer.h"
 #include "base/socket.h"
 
@@ -34,6 +35,10 @@ private:
   Buffer output_buffer_;
   // 客户端连接是否已断开，如果已断开，则设置为true。
   std::atomic_bool disconnect_ = false;
+
+  // 时间戳，创建Connection对象时为当前时间
+  // 每接收到一个报文，把时间戳更新为当前时间。
+  Timestamp last_receive_time_;
 
   // 关闭fd_的回调函数
   // 将回调TcpServer::closeconnection()。
