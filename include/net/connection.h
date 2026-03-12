@@ -98,6 +98,14 @@ public:
   // 处理写事件的回调函数，供Channel回调。
   void writeCallback();
 
+  // 更新最后活动时间（每次收到数据后调用）
+  void updateLastReceiveTime() { last_receive_time_ = Timestamp::now(); }
+
+  // 判断是否空闲超时
+  bool isIdle(double timeoutSeconds) const {
+    return last_receive_time_.isTimeout(timeoutSeconds);
+  }
+
   // 设置关闭fd_的回调函数。
   template<typename Callback>
   void setCloseCallback(Callback&& cb) {

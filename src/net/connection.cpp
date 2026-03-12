@@ -73,6 +73,8 @@ Connection::onMessage() {
       break;
     }
   }
+  // 数据接收完毕后更新最后活动时间
+  updateLastReceiveTime();
 }
 
 void
@@ -102,6 +104,7 @@ void
 Connection::closeCallback() {
   disconnect_ = true;
   client_channel_->removeNode();
+  loop_->removeConnection(shared_from_this());
   closeCallback_(shared_from_this());
 }
 
@@ -109,6 +112,7 @@ void
 Connection::errorCallback() {
   disconnect_ = true;
   client_channel_->removeNode();
+  loop_->removeConnection(shared_from_this());
   errorCallback_(shared_from_this());
 }
 

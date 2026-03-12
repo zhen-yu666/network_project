@@ -3,10 +3,12 @@
 #ifndef EVENT_LOOP_H
 #define EVENT_LOOP_H
 
+#include <net/connection.h>
 #include "base/epoll.h"
 
 #include <sys/eventfd.h>
 #include <functional>
+#include <map>
 #include <mutex>
 #include <thread>
 
@@ -35,12 +37,15 @@ private:
   // 标记当前是否正在执行 pending functors
   bool calling_pending_functors_;
 
-  // 当前循环类型
-  LoopType type_;
-  // 定时器的fd。
   int timer_fd_;
-  // 定时器的Channel。
   std::unique_ptr<Channel> timer_channel_;
+
+  // 本 loop 管理的所有连接
+  std::map<int, SptrConnection> conns_;
+  // 默认超时 80 秒
+  double idle_timeout_ = 80.0;
+  // 回调 TcpServer::removeConnection
+  std::function<void(SptrConnection)> remove_conn_callback_;
 
 private:
   void init();
@@ -56,11 +61,10 @@ private:
 
 public:
   // 在构造函数中创建Epoll对象ep_。
-  EventLoop(LoopType type)
+  EventLoop()
       : ep_(new Epoll),
         thread_id_(std::this_thread::get_id()),
-        calling_pending_functors_(false),
-        type_(type) {
+        calling_pending_functors_(false) {
     init();
   }
 
@@ -92,8 +96,23 @@ public:
   // 无论当前线程是谁，都将 cb 放入队列并唤醒 loop 线程（如果需要）
   void queueInLoop(std::function<void()> cb);
 
-  // 闹钟响时执行的函数。
+  // 设置空闲超时时间（秒）
+  void setIdleTimeout(double seconds) { idle_timeout_ = seconds; }
+
+  // 添加连接（由 TcpServer 调用）
+  void addConnection(SptrConnection conn) { conns_[conn->fd()] = conn; }
+
+  // 从本 loop 管理的连接映射中删除指定连接
+  void removeConnection(const SptrConnection& conn);
+
+  // 定时器处理函数（应被周期性调用）
   void handleTimer();
+
+  // 设置连接超时后的回调（由 TcpServer 提供）
+  template<typename Callback>
+  void setRemoveConnectionCallback(Callback&& cb) {
+    remove_conn_callback_ = std::forward<Callback>(cb);
+  }
 };
 
 #endif

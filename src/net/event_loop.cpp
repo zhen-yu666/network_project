@@ -37,9 +37,20 @@ EventLoop::init() {
   // 让 epoll 监听 wakeupFd_ 的读事件
   wakeup_channel_->enableReading();
 
-  timer_fd_ = createTimerFd();
+  timer_fd_ = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
+  if(timer_fd_ == -1)
+    exit(-1);
 
-  // 为 timer_fd_ 创建 Channel，并设置读回调为 handleTimer
+  // 设置定时器周期（例如 5 秒）
+  itimerspec howlong;
+  memset(&howlong, 0, sizeof(howlong));
+  // 首次超时 5 秒后
+  howlong.it_value.tv_sec = 5;
+  // 之后每 5 秒一次
+  howlong.it_interval.tv_sec = 5;
+  timerfd_settime(timer_fd_, 0, &howlong, NULL);
+
+  // 创建 Channel 并注册读事件
   timer_channel_ = std::make_unique<Channel>(this, timer_fd_);
 
   timer_channel_->setReadCallback([this]() { handleTimer(); });
@@ -147,21 +158,30 @@ EventLoop::queueInLoop(std::function<void()> cb) {
   }
 }
 
-#include <cstdio>
+void
+EventLoop::removeConnection(const SptrConnection& conn) {
+  auto it = conns_.find(conn->fd());
+  if(it != conns_.end()) {
+    conns_.erase(it);
+  }
+}
 
 void
 EventLoop::handleTimer() {
-  // 重新计时。
-  // 定时时间的数据结构。
-  itimerspec timeout;
-  memset(&timeout, 0, sizeof(struct itimerspec));
-  // 定时时间，固定为5，方便测试。
-  timeout.it_value.tv_sec = 5;
-  timeout.it_value.tv_nsec = 0;
-  timerfd_settime(timer_fd_, 0, &timeout, 0);
-
-  if(type_ == LoopType::MainLoop)
-    printf("主事件循环的闹钟时间到了。\n");
-  else
-    printf("从事件循环的闹钟时间到了。\n");
+  // 遍历所有连接，检查是否超时
+  for(auto it = conns_.begin(); it != conns_.end();) {
+    if(it->second->isIdle(idle_timeout_)) {
+      printf("EventLoop::handleTimer: connection %d timeout\n", it->first);
+      // 超时，通过回调通知 TcpServer 清理全局资源
+      auto conn = it->second;
+      // 先从本地删除
+      it = conns_.erase(it);
+      if(remove_conn_callback_) {
+        // 通知主线程清理
+        remove_conn_callback_(conn);
+      }
+    } else {
+      ++it;
+    }
+  }
 }

@@ -25,6 +25,8 @@ private:
   std::unique_ptr<Acceptor> acceptor_;
   // 一个TcpServer有多个Connection对象，存放在map容器中。
   std::unordered_map<int, SptrConnection> conns_;
+  // 用于互斥访问 conns_
+  std::mutex mtx_;
 
   // 回调EchoServer::HandleNewConnection()。
   std::function<void(SptrConnection)> new_conn_callback_;
@@ -74,6 +76,8 @@ public:
 
   // epoll_wait()超时，
   void epollTimeout(EventLoop* loop);
+
+  void removeConnection(SptrConnection conn);
 
   template<typename Callback>
   void setNewConnCallback(Callback&& cb) {

@@ -9,7 +9,7 @@
 void
 TcpServer::init(const std::string& ip, const uint16_t port) {
   // 创建主事件循环。
-  main_loop_ = new EventLoop(LoopType::MainLoop);
+  main_loop_ = new EventLoop();
 
   // 设置timeout超时的回调函数。
   main_loop_->setEpollTimeoutCallback(
@@ -26,12 +26,26 @@ TcpServer::init(const std::string& ip, const uint16_t port) {
 
   // 创建从事件循环。
   for(int i = 0; i < thread_num_; ++i) {
-    // 创建从事件循环，存入subloops_容器中。
-    sub_loops_.emplace_back(std::make_unique<EventLoop>(LoopType::SubLoop));
-    // 设置timeout超时的回调函数。
-    sub_loops_[i]->setEpollTimeoutCallback(
+    auto subloop = std::make_unique<EventLoop>();
+
+    // 设置 epoll 超时回调（保持不变）
+    subloop->setEpollTimeoutCallback(
       [this](EventLoop* loop) { epollTimeout(loop); });
-    thread_pool_->addTask([loop = sub_loops_[i].get()]() { loop->run(); });
+
+    // 设置空闲超时时间（例如 80 秒）
+    subloop->setIdleTimeout(10.0);
+
+    // 设置连接超时回调，用于清理全局连接
+    subloop->setRemoveConnectionCallback(
+      [this, main_loop = main_loop_](SptrConnection conn) {
+        main_loop->queueInLoop([this, conn]() { removeConnection(conn); });
+      });
+
+    // 将子循环存入容器
+    sub_loops_.emplace_back(std::move(subloop));
+
+    // 启动子循环线程
+    thread_pool_->addTask([loop = sub_loops_.back().get()]() { loop->run(); });
   }
 }
 
@@ -104,6 +118,9 @@ TcpServer::newConnection(std::unique_ptr<Socket> client_sock) {
     conn->setSendCompleteCallback(
       [this](SptrConnection conn) { sendComplete(conn); });
 
+    // 将连接加入子 loop 的本地映射
+    sub_loop->addConnection(conn);
+
     // 将新连接加入主线程的映射表（conns_ 由主线程独占访问）
     // 因此需要再通过主线程的 queueInLoop 抛回主线程执行
     main_loop_->queueInLoop([this, conn]() {
@@ -161,4 +178,18 @@ void
 TcpServer::epollTimeout(EventLoop* loop) {
   if(timeout_callback_)
     timeout_callback_(loop);
+}
+
+void
+TcpServer::removeConnection(SptrConnection conn) {
+  printf("TcpServer::removeConnection: fd=%d\n", conn->fd());
+  std::lock_guard<std::mutex> lock(mtx_);
+  auto it = conns_.find(conn->fd());
+  if(it != conns_.end()) {
+    conns_.erase(it);
+    if(close_conn_callback_) {
+      // 通知 EchoServer 连接已关闭
+      close_conn_callback_(conn);
+    }
+  }
 }
