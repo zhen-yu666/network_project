@@ -1,6 +1,7 @@
 #include "net/connection.h"
 
 #include "base/channel.h"
+#include "net/event_loop.h"
 
 #include <unistd.h>
 #include <cstring>
@@ -82,6 +83,18 @@ Connection::send(const char* data, size_t size) {
   output_buffer_.append(data, size);
   // 注册写事件。
   client_channel_->enableWriting();
+}
+
+void
+Connection::send(const std::string& message) {
+  if(loop_->isInLoopThread()) {
+    // 如果当前线程就是本连接所属的 IO 线程，直接发送
+    sendInLoop(std::move(message));
+  } else {
+    // 否则将发送任务抛给 IO 线程
+    loop_->queueInLoop(
+      [this, msg = std::move(message)]() { sendInLoop(std::move(msg)); });
+  }
 }
 
 void

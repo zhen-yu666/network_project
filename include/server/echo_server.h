@@ -13,7 +13,7 @@ class EventLoop;
 class EchoServer {
 private:
   TcpServer tcpserver_;
-  ThreadPool* threads_;
+  std::unique_ptr<ThreadPool> threads_;
 
 private:
   void init();
@@ -22,11 +22,11 @@ public:
   EchoServer(const std::string& ip, const uint16_t port, int sub_thread_num = 2,
              int work_thread_num = 2)
       : tcpserver_(ip, port, sub_thread_num),
-        threads_(new ThreadPool(work_thread_num)) {
+        threads_(std::make_unique<ThreadPool>(work_thread_num)) {
     init();
   }
 
-  ~EchoServer();
+  ~EchoServer() = default;
 
   // 启动服务。
   void Start();

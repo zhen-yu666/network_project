@@ -10,6 +10,9 @@
 #include <functional>
 #include <memory>
 
+#include <sys/syscall.h>
+#include <unistd.h>
+
 class EventLoop;
 class Socket;
 class Channel;
@@ -48,6 +51,13 @@ private:
 private:
   void init();
 
+  // 在 IO 线程中实际执行发生操作
+  void sendInLoop(const std::string& message) {
+    // 复用已有的发送逻辑（注意 message 可能较大，考虑移动）
+    printf("Connection::send() thread is %ld.\n", syscall(SYS_gettid));
+    send(message.data(), message.size());
+  }
+
 public:
   Connection(EventLoop* loop, std::unique_ptr<Socket> client_sock)
       : loop_(loop), client_sock_(std::move(client_sock)) {
@@ -70,6 +80,9 @@ public:
 
   // 发送数据
   void send(const char* data, size_t size);
+
+  // 工作线程直接调用此方法
+  void send(const std::string& message);
 
   // TCP连接关闭（断开）的回调函数，供Channel回调。
   void closeCallback();

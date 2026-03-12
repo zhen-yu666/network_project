@@ -47,6 +47,9 @@ public:
     // 唤醒一个线程。
     cv_.notify_one();
   }
+
+  // 返回池中线程个数
+  uint64_t size() const { return threads_.size(); }
 };
 
 #endif

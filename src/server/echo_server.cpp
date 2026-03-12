@@ -21,11 +21,6 @@ EchoServer::init() {
   //   std::bind(&EchoServer::handleTimeout, this, std::placeholders::_1));
 }
 
-EchoServer::~EchoServer() {
-  delete threads_;
-  threads_ = nullptr;
-}
-
 void
 EchoServer::Start() {
   tcpserver_.start();
@@ -57,11 +52,14 @@ EchoServer::handleError(SptrConnection conn) {
 
 void
 EchoServer::handleMessage(SptrConnection conn, const std::string& message) {
-  printf("EchoServer::HandleMessage() thread is %ld.\n", syscall(SYS_gettid));
-
-  // 把业务添加到线程池的任务队列中。
-  threads_->addTask(
-    std::bind(&EchoServer::onMessage, this, conn, std::move(message)));
+  if(threads_->size() == 0) {
+    onMessage(conn, std::move(message));
+  } else {
+    // 把业务添加到线程池的任务队列中。
+    threads_->addTask([this, conn, msg = std::move(message)]() {
+      onMessage(conn, std::move(msg));
+    });
+  }
 }
 
 void
@@ -80,8 +78,10 @@ EchoServer::handleTimeout(EventLoop* loop) {
 
 void
 EchoServer::onMessage(SptrConnection conn, const std::string& message) {
+  printf("EchoServer::onMessage() thread is %ld.\n", syscall(SYS_gettid));
   // 构造响应数据
   std::string reply = "reply:" + message;
   // 把临时缓冲区中的数据发送出去
-  conn->send(reply.data(), reply.size());
+  // 自动跨线程投递
+  conn->send(std::move(reply));
 }
