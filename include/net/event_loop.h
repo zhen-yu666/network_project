@@ -96,7 +96,7 @@ public:
   }
 
   // 如果当前是 loop 线程则直接执行 cb，否则将 cb 放入队列并唤醒 loop 线程
-  void runInLoop(std::function<void()> cb);
+  void runInLoop(const std::function<void()>& cb);
 
   // 无论当前线程是谁，都将 cb 放入队列并唤醒 loop 线程（如果需要）
   void queueInLoop(std::function<void()> cb);
@@ -115,8 +115,8 @@ public:
 
   // 设置连接超时后的回调（由 TcpServer 提供）
   template<typename Callback>
-  void setRemoveConnectionCallback(Callback&& cb) {
-    remove_conn_callback_ = std::forward<Callback>(cb);
+  void setRemoveConnectionCallback(const Callback& cb) {
+    remove_conn_callback_ = std::move(cb);
   }
 };
 

@@ -182,7 +182,7 @@ TcpServer::errorConnection(SptrConnection conn) {
 void
 TcpServer::onMessage(SptrConnection conn, const std::string& msg) {
   if(on_msg_callback_)
-    on_msg_callback_(conn, msg);
+    on_msg_callback_(conn, std::move(msg));
 }
 
 void

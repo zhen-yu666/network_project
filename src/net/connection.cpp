@@ -63,6 +63,7 @@ Connection::onMessage() {
         // 更新Connection的时间戳。
         last_receive_time_ = Timestamp::now();
 
+        // 回调TcpServer::onmessage()处理客户端的请求消息。
         onMsgCallback_(shared_from_this(), std::move(message));
       }
       break;

@@ -139,7 +139,7 @@ EventLoop::removeChannel(Channel* ch) {
 }
 
 void
-EventLoop::runInLoop(std::function<void()> cb) {
+EventLoop::runInLoop(const std::function<void()>& cb) {
   if(isInLoopThread()) {
     // 当前线程就是本 loop 线程，直接执行（无锁、无唤醒、高效）
     cb();
@@ -179,12 +179,12 @@ EventLoop::handleTimer() {
   // 遍历所有连接，检查是否超时
   for(auto it = conns_.begin(); it != conns_.end();) {
     if(it->second->isIdle(idle_timeout_)) {
-      // 超时，通过回调通知 TcpServer 清理全局资源
       auto conn = it->second;
-      // 先从本地删除
+      // 从自己的局部表中删除
       it = conns_.erase(it);
       if(remove_conn_callback_) {
-        // 通知主线程清理
+        // 通知主线程清理全局表
+        // 这个回调指向 TcpServer::removeConnection
         remove_conn_callback_(conn);
       }
     } else {

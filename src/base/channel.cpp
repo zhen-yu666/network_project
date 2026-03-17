@@ -61,11 +61,12 @@ Channel::handLevent() {
     // 对方已关闭，有些系统检测不到，可以使用EPOLLIN，recv()返回0。
     close_callback_();
   } else if(revents_ & (EPOLLIN | EPOLLPRI)) {
-    // 如果有新连接，设置回调函数为newConnection
-    // 如果有数据到达，设置回调函数为onMessage
+    // 如果是acceptchannel，将回调Acceptor::newconnection()
+    // 如果是clientchannel，将回调Connection::onmessage()。
     read_callback_();
   } else if(revents_ & EPOLLOUT) {
-    // 有数据需要写，暂时没有代码，以后再说。
+    // 有数据需要向外发送
+    // 回调Connection::writecallback()。
     write_callback_();
   } else {
     // 其它事件，都视为错误。
